@@ -71,21 +71,46 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<Facial
           content: [
             {
               type: "text",
-              text: "As a dermatologist, analyze this facial image and provide a detailed skin assessment. Return ONLY a JSON object with NO additional text in this exact format: {\"skinType\": \"dry/oily/combination/normal\", \"concerns\": [\"list concerns\"], \"features\": {\"moisture\": \"description\", \"acne\": \"description\", \"darkSpots\": \"description\", \"pores\": \"description\", \"wrinkles\": \"description\", \"texture\": \"description\", \"redness\": \"description\", \"elasticity\": \"description\"}, \"recommendations\": [{\"category\": \"type\", \"productType\": \"specific product\", \"reason\": \"why needed\", \"priority\": 1, \"ingredients\": [\"key ingredients\"]}]}"
+              text: `As a dermatologist, analyze this facial image and provide a detailed skin assessment. Format your response exactly as follows (replace text in brackets):
+
+Skin Type: [dry/oily/combination/normal]
+Concerns:
+- [concern 1]
+- [concern 2]
+...
+
+Features:
+Moisture: [description]
+Acne: [description]
+Dark Spots: [description]
+Pores: [description]
+Wrinkles: [description]
+Texture: [description]
+Redness: [description]
+Elasticity: [description]
+
+Recommendations:
+1. Category: [type]
+   Product Type: [specific product]
+   Reason: [why needed]
+   Priority: [1-5]
+   Key Ingredients:
+   - [ingredient 1]
+   - [ingredient 2]
+   ...`
             },
             {
               type: "image_url",
               image_url: {
                 url: formattedImageUrl,
-                detail: "high" // Request high detail analysis
+                detail: "high"
               }
             }
           ]
         }
       ],
       max_tokens: 4096,
-      temperature: 0.5,
-      response_format: { type: "json_object" }
+      temperature: 0.5
     });
 
     console.log('OpenAI API response received');
@@ -96,16 +121,86 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<Facial
       throw new Error("No analysis generated");
     }
 
-    console.log('Parsing OpenAI response...');
-    const analysisData = JSON.parse(result);
+    console.log('Parsing OpenAI response into JSON...');
+
+    // Parse the formatted string into JSON
+    const lines = result.split('\n');
+    const analysisData: FacialAnalysis = {
+      skinType: '',
+      concerns: [],
+      features: {
+        moisture: '',
+        acne: '',
+        darkSpots: '',
+        pores: '',
+        wrinkles: '',
+        texture: '',
+        redness: '',
+        elasticity: ''
+      },
+      recommendations: []
+    };
+
+    let currentSection = '';
+    let currentRecommendation: any = null;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
+
+      if (trimmedLine.startsWith('Skin Type:')) {
+        analysisData.skinType = trimmedLine.split(':')[1].trim();
+      } else if (trimmedLine === 'Concerns:') {
+        currentSection = 'concerns';
+      } else if (trimmedLine === 'Features:') {
+        currentSection = 'features';
+      } else if (trimmedLine === 'Recommendations:') {
+        currentSection = 'recommendations';
+      } else if (trimmedLine.startsWith('-') && currentSection === 'concerns') {
+        analysisData.concerns.push(trimmedLine.substring(1).trim());
+      } else if (currentSection === 'features') {
+        const [key, value] = trimmedLine.split(':').map(s => s.trim());
+        if (value && key.toLowerCase() in analysisData.features) {
+          (analysisData.features as any)[key.toLowerCase()] = value;
+        }
+      } else if (currentSection === 'recommendations') {
+        if (trimmedLine.startsWith('Category:')) {
+          if (currentRecommendation) {
+            analysisData.recommendations.push(currentRecommendation);
+          }
+          currentRecommendation = {
+            category: trimmedLine.split(':')[1].trim(),
+            productType: '',
+            reason: '',
+            priority: 1,
+            ingredients: []
+          };
+        } else if (currentRecommendation) {
+          if (trimmedLine.startsWith('Product Type:')) {
+            currentRecommendation.productType = trimmedLine.split(':')[1].trim();
+          } else if (trimmedLine.startsWith('Reason:')) {
+            currentRecommendation.reason = trimmedLine.split(':')[1].trim();
+          } else if (trimmedLine.startsWith('Priority:')) {
+            currentRecommendation.priority = parseInt(trimmedLine.split(':')[1].trim(), 10);
+          } else if (trimmedLine.startsWith('-')) {
+            currentRecommendation.ingredients.push(trimmedLine.substring(1).trim());
+          }
+        }
+      }
+    }
+
+    // Add the last recommendation if exists
+    if (currentRecommendation) {
+      analysisData.recommendations.push(currentRecommendation);
+    }
 
     // Validate required fields
-    if (!analysisData.skinType || !analysisData.concerns || !analysisData.features || !analysisData.recommendations) {
+    if (!analysisData.skinType || !analysisData.concerns.length || !Object.values(analysisData.features).every(v => v) || !analysisData.recommendations.length) {
       console.error('Invalid response structure:', analysisData);
       throw new Error("Invalid response format: missing required fields");
     }
 
-    return analysisData as FacialAnalysis;
+    return analysisData;
   } catch (error) {
     console.error('OpenAI API error:', error);
     if (error instanceof Error) {
