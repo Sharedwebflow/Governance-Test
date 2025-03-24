@@ -95,7 +95,15 @@ Ensure the response remains focused on makeup recommendations only—do not anal
       throw new Error("No analysis generated");
     }
 
-    return result;
+    // Look for the start of actual recommendations
+    const startMarker = "Foundation Recommendation:";
+    const startIndex = result.indexOf(startMarker);
+    
+    if (startIndex === -1) {
+      throw new Error("Analysis does not contain makeup recommendations");
+    }
+
+    return result.substring(startIndex);
   } catch (error) {
     console.error('OpenAI API error:', error);
     throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
