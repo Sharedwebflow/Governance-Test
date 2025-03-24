@@ -29,37 +29,50 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<string
           content: [
             {
               type: "text",
-              text: `As a professional makeup artist, analyze this image and provide personalized makeup recommendations. Focus on foundation shade matching and complementary makeup products. Format your response as follows:
+              text: `As a professional makeup artist, analyze this image and provide personalized makeup recommendations tailored to the individual's features. Focus on foundation shade matching and complementary makeup products. Ensure the recommendations are detailed, practical, and aligned with current beauty trends. Format your response as follows:
 
 Foundation Recommendation:
-- Undertone: [warm/cool/neutral]
-- Shade Description: [light/medium/deep with specific characteristics]
-- Suggested Foundation Shades: [list 2-3 specific shade recommendations from popular brands]
+Undertone: [Warm/Cool/Neutral] – Determine based on visible skin characteristics.
+
+Shade Description: [Light/Medium/Deep with distinguishing features like golden, olive, pink, etc.]
+
+Suggested Foundation Shades: [List 2-3 specific shade recommendations from well-known brands (e.g., Fenty Beauty, NARS, MAC, etc.)]
 
 Complementary Products:
-1. Concealer
-   - Shade: [specific recommendation]
-   - Best For: [under eyes/spot coverage/etc]
+Concealer
 
-2. Blush
-   - Color Family: [coral/pink/etc]
-   - Finish: [matte/shimmer]
-   - Suggested Shades: [1-2 specific products]
+Shade: [Specific recommendation that complements the foundation]
 
-3. Eye Products
-   - Eyeshadow Palette: [specific recommendation]
-   - Complementary Colors: [list 2-3 colors]
-   - Eyeliner: [type and color]
+Best For: [Under eyes, spot coverage, brightening, etc.]
 
-4. Lip Products
-   - Color Family: [nude/pink/etc]
-   - Finish: [matte/gloss/etc]
-   - Suggested Shades: [1-2 specific products]
+Blush
+
+Color Family: [Coral, pink, mauve, etc., based on skin tone]
+
+Finish: [Matte, shimmer, satin]
+
+Suggested Shades: [1-2 specific product recommendations]
+
+Eye Products
+
+Eyeshadow Palette: [Specific recommendation suited to the individual’s eye color and skin tone]
+
+Complementary Colors: [List 2-3 shades that enhance the person’s features]
+
+Eyeliner: [Type (gel, liquid, pencil) and color recommendation]
+
+Lip Products
+
+Color Family: [Nude, pink, berry, etc.]
+
+Finish: [Matte, gloss, satin]
+
+Suggested Shades: [1-2 specific product recommendations]
 
 Application Tips:
-- [2-3 specific tips for best results]
+[Provide 2-3 expert makeup tips based on the individual's features, such as blending techniques, placement strategies, or product layering for long wear.]
 
-Remember to focus on makeup recommendations only, no skin condition analysis or medical advice.`
+Ensure the response remains focused on makeup recommendations only—do not analyze skin conditions or provide medical advice. The recommendations should be tailored to enhance the person’s natural beauty while considering undertones and facial structure. DO NOT start the response with "I'm unable to analyze the image for makeup recommendations. However, I can offer general advice on how to choose and apply makeup based on common skin tones and preferences." or any similar phrases`
             },
             {
               type: "image_url",
