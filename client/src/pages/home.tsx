@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { ImageUpload } from "@/components/image-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,9 +9,9 @@ import LoadingAnalysis from "@/components/loading-analysis";
 import { Sparkles, Scan, Heart, Star } from "lucide-react";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [image, setImage] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
   const analyzeMutation = useMutation({
     mutationFn: async (base64Image: string) => {
@@ -24,7 +23,7 @@ export default function Home() {
       return response.json();
     },
     onSuccess: (data) => {
-      setLocation(`/analysis/${data.id}`);
+      setAnalysisResult(data.analysis);
     },
     onError: (error: Error) => {
       toast({
@@ -79,6 +78,18 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
+
+        {/* Analysis Results */}
+        {analysisResult && (
+          <Card className="max-w-3xl mx-auto">
+            <CardContent className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Your Beauty Analysis</h2>
+              <pre className="whitespace-pre-wrap font-sans text-base">
+                {analysisResult}
+              </pre>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Key Features */}
         <div className="py-12">
