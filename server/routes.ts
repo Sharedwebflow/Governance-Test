@@ -2,26 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeFacialFeatures } from "./lib/openai";
-import { insertAnalysisSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
-import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
-
-  app.get("/api/products", async (_req, res) => {
-    const products = await storage.getProducts();
-    res.json(products);
-  });
-
-  app.get("/api/products/:id", async (req, res) => {
-    const product = await storage.getProduct(Number(req.params.id));
-    if (!product) {
-      res.status(404).json({ message: "Product not found" });
-      return;
-    }
-    res.json(product);
-  });
 
   app.post("/api/analyze", async (req, res) => {
     try {
@@ -51,29 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const analysis = await analyzeFacialFeatures(image);
         console.log('Analysis completed successfully');
 
-        try {
-          console.log('Validating analysis results...');
-          const validatedAnalysis = insertAnalysisSchema.parse({
-            userId: req.user?.id || 1,
-            imageUrl: `data:image/jpeg;base64,${image}`,
-            ...analysis
-          });
-
-          console.log('Saving analysis results...');
-          const savedAnalysis = await storage.createAnalysis(validatedAnalysis);
-          return res.json(savedAnalysis);
-
-        } catch (validationError) {
-          console.error('Validation error:', validationError);
-          if (validationError instanceof z.ZodError) {
-            return res.status(400).json({
-              message: "Invalid analysis data format",
-              details: validationError.errors
-            });
-          }
-          throw validationError;
-        }
-
+        return res.json({ analysis });
       } catch (analysisError) {
         console.error('Analysis error:', analysisError);
         return res.status(500).json({ 
@@ -88,6 +50,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
+  });
+
+  app.get("/api/products", async (_req, res) => {
+    const products = await storage.getProducts();
+    res.json(products);
+  });
+
+  app.get("/api/products/:id", async (req, res) => {
+    const product = await storage.getProduct(Number(req.params.id));
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+    res.json(product);
   });
 
   app.get("/api/analysis/:id", async (req, res) => {
