@@ -103,7 +103,8 @@ Ensure the response remains focused on makeup recommendations only—do not anal
       throw new Error("Analysis does not contain makeup recommendations");
     }
 
-    return result.substring(startIndex);
+    // Add the length of the marker to skip it in the output
+    return result.substring(startIndex + startMarker.length);
   } catch (error) {
     console.error('OpenAI API error:', error);
     throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
