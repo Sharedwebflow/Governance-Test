@@ -75,8 +75,9 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<Facial
             },
             {
               type: "image_url",
-              "image_url": {
-                "url": formattedImageUrl
+              image_url: {
+                url: formattedImageUrl,
+                detail: "high" // Request high detail analysis
               }
             }
           ]
