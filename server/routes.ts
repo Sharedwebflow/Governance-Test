@@ -135,11 +135,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!analysis) {
         return res.status(404).json({ message: "Analysis not found" });
       }
+      
+      // Ensure clean data by transforming problematic fields before sending
+      const cleanedAnalysis = {
+        ...analysis,
+        // Process recommendations to ensure it's either a clean JSON array or string
+        recommendations: (() => {
+          try {
+            // If it's already an array, return it
+            if (Array.isArray(analysis.recommendations)) {
+              return analysis.recommendations;
+            }
+            
+            // If it's a string that looks like JSON, try to parse it
+            if (typeof analysis.recommendations === 'string' && 
+                (analysis.recommendations.trim().startsWith('[') || 
+                 analysis.recommendations.trim().startsWith('{'))) {
+              return JSON.parse(analysis.recommendations);
+            }
+            
+            // Otherwise treat as plain text
+            return analysis.recommendations;
+          } catch (e) {
+            console.log('Failed to parse recommendations:', e);
+            return analysis.recommendations; // Keep as original string
+          }
+        })(),
+        
+        // Process concerns similarly if needed
+        concerns: Array.isArray(analysis.concerns) 
+          ? analysis.concerns 
+          : (typeof analysis.concerns === 'string' ? [analysis.concerns] : [])
+      };
 
-      return res.json(analysis);
+      return res.json(cleanedAnalysis);
     } catch (error) {
       console.error('Error fetching analysis:', error);
-      return res.status(500).json({ message: "Failed to fetch analysis" });
+      return res.status(500).json({ 
+        message: "Failed to fetch analysis",
+        details: error instanceof Error ? error.message : 'Unknown error'  
+      });
     }
   });
 
