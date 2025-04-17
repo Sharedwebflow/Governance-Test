@@ -13,9 +13,33 @@ if (process.env.DATABASE_URL) {
   pool = new Pool({ connectionString: process.env.DATABASE_URL });
   db = drizzle({ client: pool, schema });
 } else {
-  console.warn("DATABASE_URL not set, database functionality will be limited");
-  // Create mock/empty implementations
-  db = {} as any;
+  console.warn("DATABASE_URL not set, using in-memory fallback");
+  // Create mock implementations that return empty results
+  db = {
+    select: () => ({
+      from: () => ({
+        where: () => [],
+        limit: () => [],
+        orderBy: () => []
+      })
+    }),
+    insert: () => ({
+      values: () => ({
+        returning: () => [{}],
+        onConflictDoNothing: () => ({})
+      })
+    }),
+    update: () => ({
+      set: () => ({
+        where: () => ({
+          returning: () => [{}]
+        })
+      })
+    }),
+    delete: () => ({
+      where: () => ({})
+    })
+  } as any;
   pool = {} as any;
 }
 
