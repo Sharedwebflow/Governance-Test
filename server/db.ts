@@ -9,18 +9,23 @@ neonConfig.webSocketConstructor = ws;
 let pool;
 let db;
 
-if (process.env.DATABASE_URL) {
+try {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL not set");
+  }
   pool = new Pool({ connectionString: process.env.DATABASE_URL });
   db = drizzle({ client: pool, schema });
-} else {
-  console.warn("DATABASE_URL not set, using in-memory fallback");
-  // Create mock implementations that return empty results
+} catch (error) {
+  console.warn("Database connection failed:", error);
+  console.warn("Using in-memory fallback...");
+  
+  const mockReturn = () => [];
   db = {
     select: () => ({
       from: () => ({
-        where: () => [],
-        limit: () => [],
-        orderBy: () => []
+        where: () => mockReturn(),
+        limit: () => mockReturn(),
+        orderBy: () => mockReturn()
       })
     }),
     insert: () => ({
