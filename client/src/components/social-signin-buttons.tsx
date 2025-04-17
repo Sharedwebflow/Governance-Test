@@ -55,9 +55,9 @@ export function SocialSignInButtons() {
         } else if (firebaseError && firebaseError.code === "auth/unauthorized-domain") {
           toast({
             title: "Domain Not Authorized",
-            description: "Add this domain to your Firebase authorized domains list.",
+            description: `Add ${window.location.hostname} to Firebase authorized domains.`,
             variant: "destructive",
-            duration: 5000,
+            duration: 7000,
           });
         } else {
           throw error; // Rethrow for the outer catch
