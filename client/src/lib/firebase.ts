@@ -31,8 +31,12 @@ console.log("Firebase initialization with:", {
   appId: "..." + import.meta.env.VITE_FIREBASE_APP_ID.slice(-6), // Don't log the full ID
 });
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase - make sure we use the official authDomain from Firebase console
+const app = initializeApp({
+  ...firebaseConfig,
+  // Using the project ID for the authDomain - this needs to be authorized in Firebase console
+  authDomain: 'beautyai-dfa09.firebaseapp.com' 
+});
 const auth = getAuth(app);
 
 // Set persistence to local to keep user logged in

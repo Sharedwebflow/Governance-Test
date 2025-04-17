@@ -19,30 +19,43 @@ export function SocialSignInButtons() {
   useEffect(() => {
     const checkForRedirect = async () => {
       try {
+        console.log("Checking for redirect result");
         const user = await checkRedirectResult();
+        
         if (user) {
           setIsGoogleLoading(true);
-          // Send the Firebase token to our backend to create/login user
-          const idToken = await user.getIdToken();
-          const response = await apiRequest("POST", "/api/auth/firebase", { 
-            idToken,
-            provider: "google" 
-          });
+          console.log("Got user from redirect result, getting token");
           
-          if (!response.ok) {
-            throw new Error("Failed to authenticate with server");
+          try {
+            // Send the Firebase token to our backend to create/login user
+            const idToken = await user.getIdToken();
+            console.log("Got token, sending to server");
+            
+            const response = await apiRequest("POST", "/api/auth/firebase", { 
+              idToken,
+              provider: "google" 
+            });
+            
+            if (!response.ok) {
+              throw new Error("Failed to authenticate with server");
+            }
+            
+            const userData = await response.json();
+            queryClient.setQueryData(["/api/user"], userData);
+            
+            toast({
+              title: "Signed in successfully",
+              description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
+            });
+            
+            // Reload the page to reflect login state
+            window.location.href = "/";
+          } catch (tokenError) {
+            console.error("Error processing token:", tokenError);
+            throw tokenError;
           }
-          
-          const userData = await response.json();
-          queryClient.setQueryData(["/api/user"], userData);
-          
-          toast({
-            title: "Signed in successfully",
-            description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
-          });
-          
-          // Reload the page to reflect login state
-          window.location.href = "/";
+        } else {
+          console.log("No redirect result found");
         }
       } catch (error) {
         console.error("Redirect error:", error);
@@ -68,26 +81,11 @@ export function SocialSignInButtons() {
       setIsGoogleLoading(true);
       
       try {
-        const user = await signInWithGoogle();
+        // This will redirect the page to Google sign-in
+        await signInWithGoogle();
         
-        // Send the Firebase token to our backend to create/login user
-        const idToken = await user.getIdToken();
-        const response = await apiRequest("POST", "/api/auth/firebase", { 
-          idToken,
-          provider: "google" 
-        });
-        
-        if (!response.ok) {
-          throw new Error("Failed to authenticate with server");
-        }
-        
-        const userData = await response.json();
-        queryClient.setQueryData(["/api/user"], userData);
-        
-        toast({
-          title: "Signed in successfully",
-          description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
-        });
+        // The code below won't execute due to the redirect
+        // When redirect completes, the useEffect above will handle the result
       } catch (error: unknown) {
         console.error(error);
         
