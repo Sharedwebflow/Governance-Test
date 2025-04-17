@@ -6,6 +6,8 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 declare global {
   namespace Express {
@@ -29,14 +31,23 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Use PostgreSQL for session storage
+  const PostgresSessionStore = connectPg(session);
+  
   const sessionSettings: session.SessionOptions = {
-    secret: "your-secret-key", // In production, use environment variable
+    secret: process.env.SESSION_SECRET || "beauty-advisor-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-    }
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+    store: new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
+      tableName: "session"
+    })
   };
 
   app.use(session(sessionSettings));
@@ -52,7 +63,15 @@ export function setupAuth(app: Express) {
           if (!user) {
             return done(null, false, { message: "Invalid credentials" });
           }
-          return done(null, user);
+          
+          // Check password
+          if (!(await comparePasswords(password, user.password))) {
+            return done(null, false, { message: "Invalid credentials" });
+          }
+          
+          // Don't send password back to client
+          const { password: _, ...userWithoutPassword } = user;
+          return done(null, userWithoutPassword as SelectUser);
         } catch (err) {
           return done(err);
         }
@@ -67,7 +86,13 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      if (!user) {
+        return done(null, false);
+      }
+      
+      // Don't send password back to client
+      const { password: _, ...userWithoutPassword } = user;
+      done(null, userWithoutPassword as SelectUser);
     } catch (err) {
       done(err);
     }
@@ -80,15 +105,24 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Email already registered" });
       }
 
-      const user = await storage.createUser(req.body);
-      req.login(user, (err) => {
+      // Hash password before storing
+      const hashedPassword = await hashPassword(req.body.password);
+      const user = await storage.createUser({
+        ...req.body,
+        password: hashedPassword
+      });
+
+      // Don't send password back to client
+      const { password: _, ...userWithoutPassword } = user;
+      
+      req.login(userWithoutPassword, (err) => {
         if (err) {
           return res.status(500).json({ message: "Error logging in after registration" });
         }
-        return res.status(201).json(user);
+        return res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Registration failed" });
     }
   });
 
@@ -116,5 +150,26 @@ export function setupAuth(app: Express) {
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+  
+  app.get("/api/user", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    res.json(req.user);
+  });
+  
+  app.put("/api/user/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    try {
+      const updatedUser = await storage.updateUser(req.user.id, req.body);
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(400).json({ message: error instanceof Error ? error.message : "Update failed" });
+    }
   });
 }
