@@ -273,14 +273,7 @@ export default function Profile() {
                       </div>
                     </CardContent>
                     
-                    <CardFooter className="pt-0">
-                      <Button variant="ghost" size="sm" className="ml-auto" asChild>
-                        <Link href={`/analysis/${analysis.id}`}>
-                          View Details
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Link>
-                      </Button>
-                    </CardFooter>
+                    {/* CardFooter removed as requested */}
                   </Card>
                 ))}
               </div>
