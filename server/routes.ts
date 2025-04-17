@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeFacialFeatures } from "./lib/openai";
 import { setupAuth } from "./auth";
+import { verifyIdToken } from "./lib/firebase-admin";
 
 // Add middleware to check if user is authenticated
 function requireAuth(req: Request, res: any, next: any) {
@@ -279,6 +280,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Failed to update user profile",
         details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Firebase Authentication
+  app.post("/api/auth/firebase", async (req, res) => {
+    try {
+      const { idToken, provider } = req.body;
+
+      if (!idToken) {
+        return res.status(400).json({ message: "ID token is required" });
+      }
+
+      // Verify the Firebase token
+      const decodedToken = await verifyIdToken(idToken);
+      const { uid, email, name: displayName, picture } = decodedToken;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Check if user exists
+      let user = await storage.getUserByEmail(email);
+
+      if (!user) {
+        // Create a new user
+        user = await storage.createUser({
+          email,
+          name: displayName || email.split('@')[0],
+          password: `firebase-${uid}`, // Create a password that won't be used
+          skinTone: null,
+          undertone: null
+        });
+      }
+
+      // Log the user in (create a session)
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login error:', err);
+          return res.status(500).json({ message: "Failed to login" });
+        }
+
+        // Return user without password
+        const { password, ...userWithoutPassword } = user;
+        return res.status(200).json(userWithoutPassword);
+      });
+    } catch (error) {
+      console.error('Firebase auth error:', error);
+      return res.status(401).json({ 
+        message: "Authentication failed",
+        details: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
   });
