@@ -46,7 +46,12 @@ export const userProducts = pgTable("user_products", {
   addedAt: timestamp("added_at").defaultNow().notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, skinTone: true, undertone: true });
+export const insertUserSchema = createInsertSchema(users)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    skinTone: z.string().nullable().optional(),
+    undertone: z.string().nullable().optional(),
+  });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertAnalysisSchema = createInsertSchema(analyses).omit({ id: true, createdAt: true });
 export const insertUserProductSchema = createInsertSchema(userProducts).omit({ id: true, addedAt: true });
