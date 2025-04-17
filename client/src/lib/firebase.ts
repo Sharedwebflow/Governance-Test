@@ -1,14 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
-  signInWithPopup, 
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  OAuthProvider,
+  FacebookAuthProvider,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
   browserLocalPersistence,
-  setPersistence
+  setPersistence,
+  sendPasswordResetEmail
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -40,10 +43,10 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Apple sign-in
-const appleProvider = new OAuthProvider('apple.com');
-appleProvider.addScope('email');
-appleProvider.addScope('name');
+// Facebook sign-in
+const facebookProvider = new FacebookAuthProvider();
+facebookProvider.addScope('email');
+facebookProvider.addScope('public_profile');
 
 // Sign in with Google
 export const signInWithGoogle = async () => {
@@ -56,13 +59,45 @@ export const signInWithGoogle = async () => {
   }
 };
 
-// Sign in with Apple
-export const signInWithApple = async () => {
+// Sign in with Facebook
+export const signInWithFacebook = async () => {
   try {
-    const result = await signInWithPopup(auth, appleProvider);
+    const result = await signInWithPopup(auth, facebookProvider);
     return result.user;
   } catch (error) {
-    console.error("Error signing in with Apple", error);
+    console.error("Error signing in with Facebook", error);
+    throw error;
+  }
+};
+
+// Sign in with email/password
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with email", error);
+    throw error;
+  }
+};
+
+// Create account with email/password
+export const createAccountWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Error creating account with email", error);
+    throw error;
+  }
+};
+
+// Send password reset email
+export const resetPassword = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error("Error sending reset email", error);
     throw error;
   }
 };

@@ -10,7 +10,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { SocialSignInButtons } from "@/components/social-signin-buttons";
-import { User, Lock } from "lucide-react";
+import { User, Lock, Mail, AlertCircle } from "lucide-react";
+import { signInWithEmail, createAccountWithEmail, resetPassword } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = insertUserSchema.pick({ email: true }).extend({
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -22,6 +24,9 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const { toast } = useToast();
 
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -40,11 +45,158 @@ export default function AuthPage() {
     }
   });
 
+  const resetForm = useForm<{ email: string }>({
+    resolver: zodResolver(z.object({
+      email: z.string().email("Please enter a valid email address"),
+    })),
+    defaultValues: {
+      email: ""
+    }
+  });
+
   useEffect(() => {
     if (user) {
       setLocation("/");
     }
   }, [user, setLocation]);
+
+  const handleFirebaseEmailSignIn = async (data: LoginData) => {
+    try {
+      setIsLoading(true);
+      const user = await signInWithEmail(data.email, data.password);
+      
+      // Get the Firebase token
+      const idToken = await user.getIdToken();
+      
+      // Send to our backend
+      const response = await fetch("/api/auth/firebase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idToken,
+          provider: "email"
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Server authentication failed");
+      }
+      
+      // Success! Reload
+      window.location.href = "/";
+    } catch (error: any) {
+      console.error("Firebase sign in error:", error);
+      let errorMessage = "Failed to sign in";
+      
+      // Handle Firebase error codes
+      if (error.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many attempts. Please try again later";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Sign in failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFirebaseEmailRegister = async (data: any) => {
+    try {
+      setIsLoading(true);
+      const user = await createAccountWithEmail(data.email, data.password);
+      
+      // Update the user profile with the name
+      if (user.displayName !== data.name) {
+        await user.updateProfile({
+          displayName: data.name
+        });
+      }
+      
+      // Get the Firebase token
+      const idToken = await user.getIdToken();
+      
+      // Send to our backend
+      const response = await fetch("/api/auth/firebase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idToken,
+          provider: "email"
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Server authentication failed");
+      }
+      
+      // Success! Reload
+      window.location.href = "/";
+    } catch (error: any) {
+      console.error("Firebase sign up error:", error);
+      let errorMessage = "Failed to create account";
+      
+      // Handle Firebase error codes
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "This email is already registered";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email format";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password is too weak";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Registration failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (data: { email: string }) => {
+    try {
+      setIsLoading(true);
+      await resetPassword(data.email);
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for instructions to reset your password",
+      });
+      setForgotPassword(false);
+    } catch (error: any) {
+      console.error("Reset password error:", error);
+      let errorMessage = "Failed to send reset email";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Reset failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center p-4">
@@ -52,21 +204,71 @@ export default function AuthPage() {
         <CardContent className="p-6">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold">
-              {isLogin ? "Login" : "Sign Up"}
+              {forgotPassword ? "Reset Password" : isLogin ? "Login" : "Sign Up"}
             </h1>
           </div>
 
-          {isLogin ? (
-            // Login Form
+          {forgotPassword ? (
+            // Password Reset Form
             <form
-              onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))}
+              onSubmit={resetForm.handleSubmit(handleResetPassword)}
               className="space-y-6"
             >
               <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-sm font-medium">Username</Label>
+                <Label htmlFor="reset-email" className="text-sm font-medium">Email</Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <User className="h-4 w-4 text-muted-foreground" />
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="pl-10"
+                    {...resetForm.register("email")}
+                  />
+                </div>
+                {resetForm.formState.errors.email && (
+                  <p className="text-sm text-destructive">{resetForm.formState.errors.email.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  We'll send you an email with instructions to reset your password.
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setForgotPassword(false)}
+                  disabled={isLoading}
+                >
+                  Back to Login
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </div>
+            </form>
+          ) : isLogin ? (
+            // Login Form
+            <form
+              onSubmit={loginForm.handleSubmit(handleFirebaseEmailSignIn)}
+              className="space-y-6"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <Input
                     id="login-email"
@@ -101,7 +303,15 @@ export default function AuthPage() {
               </div>
 
               <div className="flex justify-end">
-                <Button variant="link" className="text-xs" size="sm">
+                <Button 
+                  variant="link" 
+                  className="text-xs" 
+                  size="sm"
+                  onClick={() => {
+                    setForgotPassword(true);
+                    resetForm.setValue("email", loginForm.getValues("email"));
+                  }}
+                >
                   Forgot password?
                 </Button>
               </div>
@@ -109,9 +319,9 @@ export default function AuthPage() {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={loginMutation.isPending}
+                disabled={isLoading}
               >
-                {loginMutation.isPending ? "Logging in..." : "LOGIN"}
+                {isLoading ? "Logging in..." : "LOGIN"}
               </Button>
               
               <div className="relative my-4">
@@ -120,7 +330,7 @@ export default function AuthPage() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-background text-muted-foreground">
-                    Or sign up using
+                    Or sign in using
                   </span>
                 </div>
               </div>
@@ -141,16 +351,22 @@ export default function AuthPage() {
           ) : (
             // Register Form
             <form
-              onSubmit={registerForm.handleSubmit((data) => registerMutation.mutate(data))}
+              onSubmit={registerForm.handleSubmit(handleFirebaseEmailRegister)}
               className="space-y-6"
             >
               <div className="space-y-2">
                 <Label htmlFor="register-name" className="text-sm font-medium">Name</Label>
-                <Input
-                  id="register-name"
-                  placeholder="Your full name"
-                  {...registerForm.register("name")}
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="register-name"
+                    placeholder="Your full name"
+                    className="pl-10"
+                    {...registerForm.register("name")}
+                  />
+                </div>
                 {registerForm.formState.errors.name && (
                   <p className="text-sm text-destructive">{registerForm.formState.errors.name.message}</p>
                 )}
@@ -158,12 +374,18 @@ export default function AuthPage() {
               
               <div className="space-y-2">
                 <Label htmlFor="register-email" className="text-sm font-medium">Email</Label>
-                <Input
-                  id="register-email"
-                  type="email"
-                  placeholder="Your email address"
-                  {...registerForm.register("email")}
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="Your email address"
+                    className="pl-10"
+                    {...registerForm.register("email")}
+                  />
+                </div>
                 {registerForm.formState.errors.email && (
                   <p className="text-sm text-destructive">{registerForm.formState.errors.email.message}</p>
                 )}
@@ -171,12 +393,18 @@ export default function AuthPage() {
               
               <div className="space-y-2">
                 <Label htmlFor="register-password" className="text-sm font-medium">Password</Label>
-                <Input
-                  id="register-password"
-                  type="password"
-                  placeholder="Create a password"
-                  {...registerForm.register("password")}
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="register-password"
+                    type="password"
+                    placeholder="Create a password"
+                    className="pl-10"
+                    {...registerForm.register("password")}
+                  />
+                </div>
                 {registerForm.formState.errors.password && (
                   <p className="text-sm text-destructive">{registerForm.formState.errors.password.message}</p>
                 )}
@@ -185,9 +413,9 @@ export default function AuthPage() {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                disabled={registerMutation.isPending}
+                disabled={isLoading}
               >
-                {registerMutation.isPending ? "Creating Account..." : "SIGN UP"}
+                {isLoading ? "Creating Account..." : "SIGN UP"}
               </Button>
               
               <div className="relative my-4">

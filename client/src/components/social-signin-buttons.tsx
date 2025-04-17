@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { FaGoogle, FaApple } from "react-icons/fa";
-import { signInWithGoogle, signInWithApple } from "@/lib/firebase";
+import { FaGoogle, FaFacebook } from "react-icons/fa";
+import { signInWithGoogle, signInWithFacebook } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -14,7 +14,7 @@ interface FirebaseAuthError {
 export function SocialSignInButtons() {
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -69,18 +69,18 @@ export function SocialSignInButtons() {
     }
   };
 
-  const handleAppleSignIn = async () => {
+  const handleFacebookSignIn = async () => {
     try {
-      setIsAppleLoading(true);
+      setIsFacebookLoading(true);
       
       try {
-        const user = await signInWithApple();
+        const user = await signInWithFacebook();
         
         // Send the Firebase token to our backend to create/login user
         const idToken = await user.getIdToken();
         const response = await apiRequest("POST", "/api/auth/firebase", { 
           idToken,
-          provider: "apple" 
+          provider: "facebook" 
         });
         
         if (!response.ok) {
@@ -102,7 +102,7 @@ export function SocialSignInButtons() {
         if (firebaseError && firebaseError.code === "auth/configuration-not-found") {
           toast({
             title: "Firebase Configuration Required",
-            description: "You need to enable Apple sign-in in your Firebase console.",
+            description: "You need to enable Facebook sign-in in your Firebase console.",
             variant: "destructive",
             duration: 5000,
           });
@@ -118,7 +118,7 @@ export function SocialSignInButtons() {
         variant: "destructive",
       });
     } finally {
-      setIsAppleLoading(false);
+      setIsFacebookLoading(false);
     }
   };
 
@@ -127,7 +127,7 @@ export function SocialSignInButtons() {
       <Button
         variant="outline"
         onClick={handleGoogleSignIn}
-        disabled={isGoogleLoading || isAppleLoading}
+        disabled={isGoogleLoading || isFacebookLoading}
         className="flex items-center justify-center gap-2 w-full"
       >
         {isGoogleLoading ? (
@@ -140,16 +140,16 @@ export function SocialSignInButtons() {
       
       <Button
         variant="outline"
-        onClick={handleAppleSignIn}
-        disabled={isAppleLoading || isGoogleLoading}
+        onClick={handleFacebookSignIn}
+        disabled={isFacebookLoading || isGoogleLoading}
         className="flex items-center justify-center gap-2 w-full"
       >
-        {isAppleLoading ? (
+        {isFacebookLoading ? (
           <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         ) : (
-          <FaApple className="h-4 w-4" />
+          <FaFacebook className="h-4 w-4 text-blue-600" />
         )}
-        Continue with Apple
+        Continue with Facebook
       </Button>
       
       <div className="text-xs text-center text-muted-foreground mt-2">
