@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { FaGoogle } from "react-icons/fa";
-import { signInWithGoogle } from "@/lib/firebase";
+import { signInWithGoogle, checkRedirectResult } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FirebaseError } from "firebase/app";
 
 interface FirebaseAuthError {
@@ -14,6 +14,54 @@ interface FirebaseAuthError {
 export function SocialSignInButtons() {
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  
+  // Check for redirect result on component mount
+  useEffect(() => {
+    const checkForRedirect = async () => {
+      try {
+        const user = await checkRedirectResult();
+        if (user) {
+          setIsGoogleLoading(true);
+          // Send the Firebase token to our backend to create/login user
+          const idToken = await user.getIdToken();
+          const response = await apiRequest("POST", "/api/auth/firebase", { 
+            idToken,
+            provider: "google" 
+          });
+          
+          if (!response.ok) {
+            throw new Error("Failed to authenticate with server");
+          }
+          
+          const userData = await response.json();
+          queryClient.setQueryData(["/api/user"], userData);
+          
+          toast({
+            title: "Signed in successfully",
+            description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
+          });
+          
+          // Reload the page to reflect login state
+          window.location.href = "/";
+        }
+      } catch (error) {
+        console.error("Redirect error:", error);
+        
+        // Display error if needed
+        if (error instanceof Error) {
+          toast({
+            title: "Sign in failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } finally {
+        setIsGoogleLoading(false);
+      }
+    };
+    
+    checkForRedirect();
+  }, [toast]);
 
   const handleGoogleSignIn = async () => {
     try {

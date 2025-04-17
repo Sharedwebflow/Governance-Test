@@ -2,6 +2,8 @@ import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -14,6 +16,7 @@ import {
   updateProfile
 } from "firebase/auth";
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
@@ -24,19 +27,15 @@ const firebaseConfig = {
 
 console.log("Firebase initialization with:", {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  apiKey: "..." + import.meta.env.VITE_FIREBASE_API_KEY.slice(-6), // Don't log the full key, just confirm it's populated
-  appId: "..." + import.meta.env.VITE_FIREBASE_APP_ID.slice(-6), // Don't log the full ID, just confirm it's populated
+  apiKey: "..." + import.meta.env.VITE_FIREBASE_API_KEY.slice(-6), // Don't log the full key
+  appId: "..." + import.meta.env.VITE_FIREBASE_APP_ID.slice(-6), // Don't log the full ID
 });
 
 // Initialize Firebase
-// Configure Firebase with the authorized domain
-const app = initializeApp({
-  ...firebaseConfig,
-  authDomain: 'beautyai-dfa09.firebaseapp.com'
-});
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Set persistence to local
+// Set persistence to local to keep user logged in
 setPersistence(auth, browserLocalPersistence).catch(error => {
   console.error("Firebase persistence setting error:", error);
 });
@@ -47,11 +46,28 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
+// Helper to check if we have a redirect result
+export const checkRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      console.log("Got redirect result");
+      return result.user;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting redirect result:", error);
+    return null;
+  }
+};
+
 // Sign in with Google
 export const signInWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    if (typeof window !== 'undefined') {
+      await signInWithRedirect(auth, googleProvider);
+    }
+    return null;
   } catch (error) {
     console.error("Error signing in with Google", error);
     throw error;
