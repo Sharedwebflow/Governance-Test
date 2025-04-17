@@ -68,10 +68,25 @@ export const checkRedirectResult = async () => {
 // Sign in with Google
 export const signInWithGoogle = async () => {
   try {
-    if (typeof window !== 'undefined') {
-      await signInWithRedirect(auth, googleProvider);
+    // Make sure we document the current hostname for debugging
+    console.log("Current hostname during signInWithGoogle:", window.location.hostname);
+    
+    // When running in development or on Replit domain, we need to add the domain to Firebase
+    // Try to use popup first, as it's more reliable in some environments
+    try {
+      console.log("Attempting to sign in with popup...");
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Popup sign-in successful");
+      return result.user;
+    } catch (popupError) {
+      console.warn("Popup sign-in failed, falling back to redirect:", popupError);
+      
+      // Fall back to redirect if popup fails
+      if (typeof window !== 'undefined') {
+        await signInWithRedirect(auth, googleProvider);
+      }
+      return null;
     }
-    return null;
   } catch (error) {
     console.error("Error signing in with Google", error);
     throw error;

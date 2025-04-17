@@ -237,14 +237,37 @@ export default function Profile() {
                         <div>
                           <h4 className="text-sm font-medium mb-2">Recommendations</h4>
                           <div className="flex flex-wrap gap-2">
-                            {Array.isArray(analysis.recommendations) && analysis.recommendations.slice(0, 3).map((rec: any, i) => (
-                              <Badge key={i} variant="secondary">
-                                {rec.productType || rec.category || "Product"}
-                              </Badge>
-                            ))}
-                            {Array.isArray(analysis.recommendations) && analysis.recommendations.length > 3 && (
-                              <Badge variant="secondary">+{analysis.recommendations.length - 3} more</Badge>
-                            )}
+                            {(() => {
+                              // Handle recommendations in different formats
+                              try {
+                                // If it's a string, try to parse it
+                                const recommendations = typeof analysis.recommendations === 'string' 
+                                  ? JSON.parse(analysis.recommendations) 
+                                  : analysis.recommendations;
+                                
+                                if (Array.isArray(recommendations)) {
+                                  return (
+                                    <>
+                                      {recommendations.slice(0, 3).map((rec: any, i) => (
+                                        <Badge key={i} variant="secondary">
+                                          {rec.productType || rec.category || "Product"}
+                                        </Badge>
+                                      ))}
+                                      {recommendations.length > 3 && (
+                                        <Badge variant="secondary">+{recommendations.length - 3} more</Badge>
+                                      )}
+                                    </>
+                                  );
+                                }
+                              } catch (e) {
+                                console.error('Error parsing recommendations:', e);
+                              }
+                              
+                              // Fallback if there's an error or it's not an array
+                              return (
+                                <Badge variant="outline">View details</Badge>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
