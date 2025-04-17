@@ -5,13 +5,13 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  FacebookAuthProvider,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
   browserLocalPersistence,
   setPersistence,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  updateProfile
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -43,11 +43,6 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Facebook sign-in
-const facebookProvider = new FacebookAuthProvider();
-facebookProvider.addScope('email');
-facebookProvider.addScope('public_profile');
-
 // Sign in with Google
 export const signInWithGoogle = async () => {
   try {
@@ -55,17 +50,6 @@ export const signInWithGoogle = async () => {
     return result.user;
   } catch (error) {
     console.error("Error signing in with Google", error);
-    throw error;
-  }
-};
-
-// Sign in with Facebook
-export const signInWithFacebook = async () => {
-  try {
-    const result = await signInWithPopup(auth, facebookProvider);
-    return result.user;
-  } catch (error) {
-    console.error("Error signing in with Facebook", error);
     throw error;
   }
 };

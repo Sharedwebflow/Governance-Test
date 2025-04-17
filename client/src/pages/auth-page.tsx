@@ -11,7 +11,8 @@ import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { SocialSignInButtons } from "@/components/social-signin-buttons";
 import { User, Lock, Mail, AlertCircle } from "lucide-react";
-import { signInWithEmail, createAccountWithEmail, resetPassword } from "@/lib/firebase";
+import { signInWithEmail, createAccountWithEmail, resetPassword, auth } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = insertUserSchema.pick({ email: true }).extend({
@@ -118,7 +119,7 @@ export default function AuthPage() {
       
       // Update the user profile with the name
       if (user.displayName !== data.name) {
-        await user.updateProfile({
+        await updateProfile(user, {
           displayName: data.name
         });
       }
