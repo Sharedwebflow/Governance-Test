@@ -29,7 +29,13 @@ console.log("Firebase initialization with:", {
 });
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Add Replit domain to authorized domains in development
+const app = initializeApp({
+  ...firebaseConfig,
+  authDomain: process.env.NODE_ENV === 'development' 
+    ? window.location.hostname 
+    : firebaseConfig.authDomain
+});
 const auth = getAuth(app);
 
 // Set persistence to local
