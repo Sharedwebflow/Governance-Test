@@ -32,7 +32,7 @@ console.log("Firebase initialization with:", {
 // Add Replit domain to authorized domains in development
 const app = initializeApp({
   ...firebaseConfig,
-  authDomain: process.env.NODE_ENV === 'development' 
+  authDomain: window.location.hostname.includes('replit') 
     ? window.location.hostname 
     : firebaseConfig.authDomain
 });
