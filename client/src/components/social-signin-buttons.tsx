@@ -4,6 +4,12 @@ import { signInWithGoogle, signInWithApple } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
+import { FirebaseError } from "firebase/app";
+
+interface FirebaseAuthError {
+  code: string;
+  message: string;
+}
 
 export function SocialSignInButtons() {
   const { toast } = useToast();
@@ -13,26 +19,44 @@ export function SocialSignInButtons() {
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
-      const user = await signInWithGoogle();
       
-      // Send the Firebase token to our backend to create/login user
-      const idToken = await user.getIdToken();
-      const response = await apiRequest("POST", "/api/auth/firebase", { 
-        idToken,
-        provider: "google" 
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to authenticate with server");
+      try {
+        const user = await signInWithGoogle();
+        
+        // Send the Firebase token to our backend to create/login user
+        const idToken = await user.getIdToken();
+        const response = await apiRequest("POST", "/api/auth/firebase", { 
+          idToken,
+          provider: "google" 
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to authenticate with server");
+        }
+        
+        const userData = await response.json();
+        queryClient.setQueryData(["/api/user"], userData);
+        
+        toast({
+          title: "Signed in successfully",
+          description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
+        });
+      } catch (error: unknown) {
+        console.error(error);
+        
+        // Show specific configuration error and instructions
+        const firebaseError = error as FirebaseError;
+        if (firebaseError && firebaseError.code === "auth/configuration-not-found") {
+          toast({
+            title: "Firebase Configuration Required",
+            description: "You need to enable Google sign-in in your Firebase console.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        } else {
+          throw error; // Rethrow for the outer catch
+        }
       }
-      
-      const userData = await response.json();
-      queryClient.setQueryData(["/api/user"], userData);
-      
-      toast({
-        title: "Signed in successfully",
-        description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
-      });
     } catch (error) {
       console.error(error);
       toast({
@@ -48,26 +72,44 @@ export function SocialSignInButtons() {
   const handleAppleSignIn = async () => {
     try {
       setIsAppleLoading(true);
-      const user = await signInWithApple();
       
-      // Send the Firebase token to our backend to create/login user
-      const idToken = await user.getIdToken();
-      const response = await apiRequest("POST", "/api/auth/firebase", { 
-        idToken,
-        provider: "apple" 
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to authenticate with server");
+      try {
+        const user = await signInWithApple();
+        
+        // Send the Firebase token to our backend to create/login user
+        const idToken = await user.getIdToken();
+        const response = await apiRequest("POST", "/api/auth/firebase", { 
+          idToken,
+          provider: "apple" 
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to authenticate with server");
+        }
+        
+        const userData = await response.json();
+        queryClient.setQueryData(["/api/user"], userData);
+        
+        toast({
+          title: "Signed in successfully",
+          description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
+        });
+      } catch (error: unknown) {
+        console.error(error);
+        
+        // Show specific configuration error and instructions
+        const firebaseError = error as FirebaseError;
+        if (firebaseError && firebaseError.code === "auth/configuration-not-found") {
+          toast({
+            title: "Firebase Configuration Required",
+            description: "You need to enable Apple sign-in in your Firebase console.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        } else {
+          throw error; // Rethrow for the outer catch
+        }
       }
-      
-      const userData = await response.json();
-      queryClient.setQueryData(["/api/user"], userData);
-      
-      toast({
-        title: "Signed in successfully",
-        description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
-      });
     } catch (error) {
       console.error(error);
       toast({
@@ -109,6 +151,10 @@ export function SocialSignInButtons() {
         )}
         Continue with Apple
       </Button>
+      
+      <div className="text-xs text-center text-muted-foreground mt-2">
+        <p>Note: To use social login, you need to configure the Firebase Authentication settings.</p>
+      </div>
     </div>
   );
 }

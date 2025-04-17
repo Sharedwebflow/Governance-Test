@@ -6,7 +6,9 @@ import {
   OAuthProvider,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  browserLocalPersistence,
+  setPersistence
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -17,15 +19,31 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+console.log("Firebase initialization with:", {
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  apiKey: "..." + import.meta.env.VITE_FIREBASE_API_KEY.slice(-6), // Don't log the full key, just confirm it's populated
+  appId: "..." + import.meta.env.VITE_FIREBASE_APP_ID.slice(-6), // Don't log the full ID, just confirm it's populated
+});
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// Set persistence to local
+setPersistence(auth, browserLocalPersistence).catch(error => {
+  console.error("Firebase persistence setting error:", error);
+});
+
 // Google sign-in
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 // Apple sign-in
 const appleProvider = new OAuthProvider('apple.com');
+appleProvider.addScope('email');
+appleProvider.addScope('name');
 
 // Sign in with Google
 export const signInWithGoogle = async () => {
