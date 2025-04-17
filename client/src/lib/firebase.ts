@@ -29,12 +29,10 @@ console.log("Firebase initialization with:", {
 });
 
 // Initialize Firebase
-// Add Replit domain to authorized domains in development
+// Configure Firebase with the authorized domain
 const app = initializeApp({
   ...firebaseConfig,
-  authDomain: window.location.hostname.includes('replit') 
-    ? window.location.hostname 
-    : firebaseConfig.authDomain
+  authDomain: 'beautyai-dfa09.firebaseapp.com'
 });
 const auth = getAuth(app);
 
