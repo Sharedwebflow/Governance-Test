@@ -339,33 +339,306 @@ export default function Home() {
       }
     }
     
-    // Add complementary products based on skin tone
-    const complementaryProducts = [
-      {
-        id: 300,
-        name: "Soft Pinch Liquid Blush",
-        brand: "Rare Beauty",
-        category: "Blush",
-        description: "Weightless, long-lasting liquid blush that blends beautifully for a soft, healthy flush",
-        imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
-        price: "$23.00",
-        videoUrl: tutorialVideos.blush,
-        productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
+    // Add complementary products based on skin tone and undertone
+    // We'll create collections for different skin tones and undertones
+    const blushProducts = {
+      light: {
+        cool: {
+          id: 305,
+          name: "Cloud Paint - Puff",
+          brand: "Glossier",
+          category: "Blush",
+          description: "Seamless, buildable gel-cream blush that's a lightweight, pillowy formula for a soft, natural-looking flush",
+          imageUrl: "https://www.glossier.com/products/cloud-paint",
+          price: "$20.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.glossier.com/products/cloud-paint"
+        },
+        warm: {
+          id: 306,
+          name: "Soft Pinch Liquid Blush - Joy",
+          brand: "Rare Beauty",
+          category: "Blush",
+          description: "Weightless, long-lasting liquid blush that blends beautifully for a peachy flush on fair warm skin",
+          imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
+          price: "$23.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
+        },
+        neutral: {
+          id: 307,
+          name: "Cheek Pop - Nude Pop",
+          brand: "Clinique",
+          category: "Blush",
+          description: "Silky powder blush with a natural-looking stain for fair neutral skin tones",
+          imageUrl: "https://www.sephora.com/productimages/sku/s1971779-main-zoom.jpg",
+          price: "$27.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.sephora.com/product/cheek-pop-P384566"
+        }
       },
-      {
-        id: 301,
-        name: "Radiant Creamy Concealer",
-        brand: "NARS",
-        category: "Concealer",
-        description: "Buildable, medium-coverage concealer that brightens, corrects, and perfects",
-        imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+      medium: {
+        cool: {
+          id: 308,
+          name: "Blush Subtil - Rose Fresque",
+          brand: "Lancôme",
+          category: "Blush",
+          description: "Oil-free powder blush that delivers bold color with a hint of shimmer",
+          imageUrl: "https://www.lancome-usa.com/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-lancome-us-master-catalog/default/dwd5a3f5ac/3605971586453_Blush_Subtil_ROSE_FRESQUE.jpg",
+          price: "$33.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.lancome-usa.com/makeup/face-makeup/blush/blush-subtil/100001089.html"
+        },
+        warm: {
+          id: 300,
+          name: "Soft Pinch Liquid Blush - Bliss",
+          brand: "Rare Beauty",
+          category: "Blush",
+          description: "Weightless, long-lasting liquid blush that blends beautifully for a soft coral flush",
+          imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
+          price: "$23.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
+        },
+        neutral: {
+          id: 309,
+          name: "Cheek Palette - NARS Orgasm X",
+          brand: "NARS",
+          category: "Blush",
+          description: "Iconic, universally flattering blush with subtle golden shimmer",
+          imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dw0173e731/hi-res/ORGASM-X-CHEEK-PALETTE/0607845081081_orgasmxcheekpalette_a.jpg",
+          price: "$42.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.narscosmetics.com/USA/orgasm-x-cheek-palette/0607845081081.html"
+        }
+      },
+      deep: {
+        cool: {
+          id: 310,
+          name: "Soft Pinch Liquid Blush - Love",
+          brand: "Rare Beauty",
+          category: "Blush",
+          description: "Weightless, long-lasting liquid blush in a deep berry shade for rich complexions",
+          imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
+          price: "$23.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
+        },
+        warm: {
+          id: 311,
+          name: "Blush Divine - Sunset Dream",
+          brand: "Pat McGrath Labs",
+          category: "Blush",
+          description: "Richly pigmented powder blush that builds from sheer to intense color",
+          imageUrl: "https://www.patmcgrath.com/products/skin-fetish-divine-powder-blush?_pos=1&_sid=c35ef3e20&_ss=r",
+          price: "$39.00",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.patmcgrath.com/products/skin-fetish-divine-powder-blush"
+        },
+        neutral: {
+          id: 312,
+          name: "Cheek Heat Gel-Cream Blush - Berry Flame",
+          brand: "Maybelline",
+          category: "Blush",
+          description: "Lightweight, water-based gel blush that delivers a natural flush of color",
+          imageUrl: "https://www.maybelline.com/~/media/mny/us/face-makeup/blush/cheek-heat/maybelline-cheek-heat-berry-flame-041554577815-o.jpg",
+          price: "$7.99",
+          videoUrl: tutorialVideos.blush,
+          productUrl: "https://www.maybelline.com/face-makeup/blush/cheek-heat-gel-cream-blush"
+        }
+      }
+    };
+    
+    const concealerProducts = {
+      light: {
+        cool: {
+          id: 320,
+          name: "Radiant Creamy Concealer - Vanilla",
+          brand: "NARS",
+          category: "Concealer",
+          description: "Award-winning concealer with buildable coverage for fair skin with pink undertones",
+          imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+          price: "$32.00",
+          shadeFamily: "Light",
+          undertone: "Cool",
+          videoUrl: tutorialVideos.concealer,
+          productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
+        },
+        warm: {
+          id: 321,
+          name: "Radiant Creamy Concealer - Custard",
+          brand: "NARS",
+          category: "Concealer",
+          description: "Award-winning concealer with buildable coverage for fair skin with yellow undertones",
+          imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+          price: "$32.00",
+          shadeFamily: "Light",
+          undertone: "Warm",
+          videoUrl: tutorialVideos.concealer,
+          productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
+        }
+      },
+      medium: {
+        neutral: {
+          id: 301,
+          name: "Radiant Creamy Concealer - Ginger",
+          brand: "NARS",
+          category: "Concealer",
+          description: "Buildable, medium-coverage concealer that brightens, corrects, and perfects",
+          imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+          price: "$32.00",
+          shadeFamily: "Medium",
+          undertone: "Neutral",
+          videoUrl: tutorialVideos.concealer,
+          productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
+        }
+      },
+      deep: {
+        warm: {
+          id: 325,
+          name: "Pro Filt'r Instant Retouch Concealer - 420",
+          brand: "Fenty Beauty",
+          category: "Concealer",
+          description: "Creamy, long-wear, crease-proof liquid concealer for deeper skin tones",
+          imageUrl: "https://www.sephora.com/productimages/sku/s2212579-main-zoom.jpg",
+          price: "$29.00",
+          shadeFamily: "Deep",
+          undertone: "Warm",
+          videoUrl: tutorialVideos.concealer,
+          productUrl: "https://www.sephora.com/product/pro-filtr-instant-retouch-concealer-P90773711"
+        }
+      }
+    };
+    
+    // Select the appropriate blush and concealer based on skin tone and undertone
+    const skinToneCategory = skinTone.toLowerCase().includes('fair') || skinTone.toLowerCase().includes('light') 
+      ? 'light'
+      : skinTone.toLowerCase().includes('medium')
+        ? 'medium'
+        : 'deep';
+    
+    const undertoneCategory = undertone.toLowerCase().includes('cool')
+      ? 'cool'
+      : undertone.toLowerCase().includes('warm')
+        ? 'warm'
+        : 'neutral';
+    
+    // Get blush recommendation (fallback to neutral if specific undertone not available)
+    const blushRec = blushProducts[skinToneCategory]?.[undertoneCategory] 
+      || blushProducts[skinToneCategory]?.neutral 
+      || blushProducts.medium.neutral;
+    
+    // Get concealer recommendation (fallback to closest match if specific combo not available)
+    const concealerRec = concealerProducts[skinToneCategory]?.[undertoneCategory]
+      || concealerProducts[skinToneCategory]?.neutral
+      || concealerProducts.medium.neutral;
+    
+    // Skin concerns based beauty recommendations
+    const skinCareRecs = {
+      dryness: {
+        id: 330,
+        name: "Intensive Overnight Moisture Cream",
+        brand: "Tatcha",
+        category: "Moisturizer",
+        description: "Rich overnight cream that nourishes dry skin with Japanese purple rice and hyaluronic acid",
+        imageUrl: "https://www.sephora.com/productimages/sku/s2181006-main-zoom.jpg",
+        price: "$89.00",
+        productUrl: "https://www.sephora.com/product/the-dewy-skin-cream-P441101"
+      },
+      oiliness: {
+        id: 331,
+        name: "Oil-Free Water Cream",
+        brand: "Tatcha",
+        category: "Moisturizer",
+        description: "Oil-free, water-light cream that controls sebum production with Japanese wild rose",
+        imageUrl: "https://www.sephora.com/productimages/sku/s1932920-main-zoom.jpg",
+        price: "$70.00",
+        productUrl: "https://www.sephora.com/product/the-water-cream-P418218"
+      },
+      acne: {
+        id: 332,
+        name: "Clearing Treatment",
+        brand: "Paula's Choice",
+        category: "Treatment",
+        description: "Targeted treatment with 2% salicylic acid to clear and prevent breakouts",
+        imageUrl: "https://www.paulaschoice.com/dw/image/v2/BBNX_PRD/on/demandware.static/-/Sites-pc-catalog/default/dw7952a8b2/images/products/skin-perfecting-2-percent-bha-liquid-2010-L.png",
         price: "$32.00",
-        shadeFamily: skinTone,
-        undertone: undertone,
-        videoUrl: tutorialVideos.concealer,
-        productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
+        productUrl: "https://www.paulaschoice.com/skin-perfecting-2pct-bha-liquid-exfoliant/201.html"
       },
-      {
+      aging: {
+        id: 333,
+        name: "Retinol Serum",
+        brand: "The Ordinary",
+        category: "Serum",
+        description: "Anti-aging serum with 1% retinol to reduce fine lines and improve skin texture",
+        imageUrl: "https://www.sephora.com/productimages/sku/s2315042-main-zoom.jpg",
+        price: "$14.00",
+        productUrl: "https://www.sephora.com/product/the-ordinary-deciem-retinol-1-in-squalane-P427420"
+      },
+      hyperpigmentation: {
+        id: 334,
+        name: "Vitamin C Serum",
+        brand: "SkinCeuticals",
+        category: "Serum",
+        description: "Potent vitamin C serum that brightens skin and reduces dark spots",
+        imageUrl: "https://www.skinceuticals.com/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-skinceuticals-master-catalog/default/dw61b11d26/2016%20Website%20Relaunch%20Products/Product%20SKU%20Update%20665-028-635025/d34dc0df-ce56-4355-97cb-6cc60c59d6b0.jpg",
+        price: "$166.00",
+        productUrl: "https://www.skinceuticals.com/c-e-ferulic-635494263008.html"
+      },
+      sensitivity: {
+        id: 335,
+        name: "Calm Redness Relief Moisturizer",
+        brand: "Paula's Choice",
+        category: "Moisturizer",
+        description: "Gentle, soothing moisturizer with anti-inflammatory ingredients for sensitive skin",
+        imageUrl: "https://www.paulaschoice.com/dw/image/v2/BBNX_PRD/on/demandware.static/-/Sites-pc-catalog/default/dwd3c30ca7/images/products/calm-redness-relief-moisturizer-normal-to-oily-9160-L.png",
+        price: "$31.00",
+        productUrl: "https://www.paulaschoice.com/calm-redness-relief-moisturizer---normal-to-oily/9160.html"
+      }
+    };
+    
+    // Determine skincare needs from analysis data
+    let skincareNeeds = 'dryness'; // Default
+    
+    if (analysis.concerns && analysis.concerns.length > 0) {
+      if (analysis.concerns.some(c => c.toLowerCase().includes('oil') || c.toLowerCase().includes('shine'))) {
+        skincareNeeds = 'oiliness';
+      } else if (analysis.concerns.some(c => c.toLowerCase().includes('acne') || c.toLowerCase().includes('breakout'))) {
+        skincareNeeds = 'acne';
+      } else if (analysis.concerns.some(c => c.toLowerCase().includes('age') || c.toLowerCase().includes('wrinkle') || c.toLowerCase().includes('fine line'))) {
+        skincareNeeds = 'aging';
+      } else if (analysis.concerns.some(c => c.toLowerCase().includes('spot') || c.toLowerCase().includes('pigment') || c.toLowerCase().includes('dark'))) {
+        skincareNeeds = 'hyperpigmentation';
+      } else if (analysis.concerns.some(c => c.toLowerCase().includes('sensitive') || c.toLowerCase().includes('redness') || c.toLowerCase().includes('irritat'))) {
+        skincareNeeds = 'sensitivity';
+      }
+    }
+    
+    // Eye makeup recommendations based on undertone
+    const eyePalettes = {
+      cool: {
+        id: 340,
+        name: "Naked3 Eyeshadow Palette",
+        brand: "Urban Decay",
+        category: "Eyeshadow",
+        description: "Rose-toned neutral eyeshadow palette ideal for cool undertones",
+        imageUrl: "https://www.sephora.com/productimages/sku/s1782937-main-zoom.jpg",
+        price: "$54.00",
+        videoUrl: tutorialVideos.eyeshadow,
+        productUrl: "https://www.sephora.com/product/naked3-P384099"
+      },
+      warm: {
+        id: 341,
+        name: "Soft Glam Eyeshadow Palette",
+        brand: "Anastasia Beverly Hills",
+        category: "Eyeshadow",
+        description: "Warm-toned neutral eyeshadow palette with gold and bronze shades",
+        imageUrl: "https://www.sephora.com/productimages/sku/s2018232-main-zoom.jpg",
+        price: "$45.00",
+        videoUrl: tutorialVideos.eyeshadow,
+        productUrl: "https://www.sephora.com/product/soft-glam-eye-shadow-palette-P04207901"
+      },
+      neutral: {
         id: 302,
         name: "Naked Palette",
         brand: "Urban Decay",
@@ -375,7 +648,15 @@ export default function Home() {
         price: "$54.00",
         videoUrl: tutorialVideos.eyeshadow,
         productUrl: "https://www.sephora.com/product/naked-reloaded-eyeshadow-palette-P441302"
-      },
+      }
+    };
+    
+    // Add other complementary products that match skin tone and concerns
+    const complementaryProducts = [
+      blushRec,
+      concealerRec,
+      eyePalettes[undertoneCategory] || eyePalettes.neutral,
+      skinCareRecs[skincareNeeds] || skinCareRecs.dryness,
       {
         id: 303,
         name: "Photo Finish Primer",
