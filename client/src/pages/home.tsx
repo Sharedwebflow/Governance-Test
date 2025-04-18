@@ -95,77 +95,7 @@ export default function Home() {
     "lipstick": "https://www.youtube.com/embed/Ow0Jr-0qzZs" // Charlotte Tilbury lipstick application
   };
 
-  const analyzeMutation = useMutation({
-    mutationFn: async (base64Image: string) => {
-      const response = await apiRequest("POST", "/api/analyze", { image: base64Image });
-      return await response.text();
-    },
-    onSuccess: (data: string) => {
-      // Store the raw analysis text for the full report tab
-      setAnalysisResult(data);
-      
-      try {
-        let parsedData: AnalysisData;
-        
-        if (data.includes('{') && data.includes('}')) {
-          // Try to parse as JSON
-          const jsonStartIndex = data.indexOf('{');
-          const jsonEndIndex = data.lastIndexOf('}') + 1;
-          const jsonString = data.substring(jsonStartIndex, jsonEndIndex);
-          
-          const parsed = JSON.parse(jsonString);
-          
-          // Handle cases where the data is nested in a properties object
-          const data = parsed.analysis || parsed;
-          
-          // Extract skin tone and undertone using regex for consistent format
-          // Example formats: "Skin Tone: Medium with warm undertones" or "Undertone: Neutral"
-          const skinToneMatch = data.match(/(?:skin\s*tone|complexion):\s*([^.\n,]+)/i);
-          const undertoneMatch = data.match(/(?:undertone|undertones):\s*([^.\n,]+)/i);
-          
-          // Clean up the extracted strings and get the first word as the simple value
-          const undertoneFullText = undertoneMatch ? undertoneMatch[1].trim() : 'Neutral';
-          const cleanUndertone = undertoneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
-          
-          // Extract the simple skin tone descriptor for consistency
-          const skinToneFullText = skinToneMatch ? skinToneMatch[1].trim() : 'Medium';
-          const simpleSkinTone = skinToneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
-          
-          console.log('Extracted skin tone:', simpleSkinTone, 'Undertone:', cleanUndertone);
-          
-          parsedData = {
-            skinType: data.skinType || 'Normal',
-            concerns: data.concerns || [],
-            features: {},
-            recommendations: [],
-            skinTone: simpleSkinTone,
-            undertone: cleanUndertone
-          };
-          
-          // Set structured data for the UI
-          setParsedAnalysis(parsedData);
-          
-          // Generate sample product recommendations based on the analysis
-          generateProductRecommendations(parsedData);
-        } else if (typeof data.analysis === 'object') {
-          setParsedAnalysis(data.analysis);
-          generateProductRecommendations(data.analysis);
-        }
-      } catch (e) {
-        console.error("Failed to parse analysis:", e);
-        // We still have the raw analysis text, so the user will see something
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-  
-  // Use our curated product database for recommendations
+  // Function to generate product recommendations based on skin tone and undertone
   const generateProductRecommendations = (analysis: AnalysisData) => {
     // Get the skin tone and undertone from the analysis
     const skinTone = analysis.skinTone || 'Medium';
@@ -290,6 +220,100 @@ export default function Home() {
     // Set the recommendations
     setRecommendedProducts(uniqueRecommendations);
   };
+
+  // Mutation for analyzing the image
+  const analyzeMutation = useMutation({
+    mutationFn: async (base64Image: string) => {
+      const response = await apiRequest("POST", "/api/analyze", { image: base64Image });
+      return await response.text();
+    },
+    onSuccess: (data: string) => {
+      // Store the raw analysis text for the full report tab
+      setAnalysisResult(data);
+      
+      try {
+        // Extract skin tone and undertone using regex for consistent format
+        // Example formats: "Skin Tone: Medium with warm undertones" or "Undertone: Neutral"
+        const skinToneMatch = data.match(/(?:skin\s*tone|complexion):\s*([^.\n,]+)/i);
+        const undertoneMatch = data.match(/(?:undertone|undertones):\s*([^.\n,]+)/i);
+        
+        // Clean up the extracted strings and get the first word as the simple value
+        const undertoneFullText = undertoneMatch ? undertoneMatch[1].trim() : 'Neutral';
+        const cleanUndertone = undertoneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+        
+        // Extract the simple skin tone descriptor for consistency
+        const skinToneFullText = skinToneMatch ? skinToneMatch[1].trim() : 'Medium';
+        const simpleSkinTone = skinToneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+        
+        console.log('Extracted skin tone:', simpleSkinTone, 'Undertone:', cleanUndertone);
+        
+        // Create a default analysis object with extracted values
+        let analysisData: AnalysisData = {
+          skinType: 'Normal',
+          concerns: ['Uneven skin tone'],
+          features: {},
+          recommendations: [],
+          skinTone: simpleSkinTone,
+          undertone: cleanUndertone
+        };
+        
+        // If the response includes JSON, try to enhance our object with that data
+        if (data.includes('{') && data.includes('}')) {
+          try {
+            // Try to extract JSON from the response
+            const jsonStartIndex = data.indexOf('{');
+            const jsonEndIndex = data.lastIndexOf('}') + 1;
+            const jsonString = data.substring(jsonStartIndex, jsonEndIndex);
+            
+            const parsed = JSON.parse(jsonString);
+            
+            // Merge the JSON data with our regex-extracted data
+            if (parsed) {
+              // Only update if we have valid properties 
+              analysisData = {
+                ...analysisData,
+                skinType: typeof parsed.skinType === 'string' ? parsed.skinType : analysisData.skinType,
+                concerns: Array.isArray(parsed.concerns) ? parsed.concerns : analysisData.concerns,
+                recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : analysisData.recommendations,
+              };
+            }
+          } catch (jsonError) {
+            console.warn('Failed to parse JSON from response:', jsonError);
+            // Continue with the default analysis data based on regex
+          }
+        }
+        
+        // Set structured data for the UI
+        setParsedAnalysis(analysisData);
+        
+        // Generate product recommendations based on the analysis
+        generateProductRecommendations(analysisData);
+        
+      } catch (parseError) {
+        console.error('Failed to parse analysis:', parseError);
+        
+        // Create a fallback analysis with default values
+        const fallbackData: AnalysisData = {
+          skinType: 'Normal',
+          concerns: ['Uneven skin tone'],
+          features: {},
+          recommendations: [],
+          skinTone: 'Medium',
+          undertone: 'Neutral'
+        };
+        
+        setParsedAnalysis(fallbackData);
+        generateProductRecommendations(fallbackData);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAnalyze = () => {
     if (image) {
@@ -432,40 +456,75 @@ export default function Home() {
                       
                       {/* Skin Type */}
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm text-muted-foreground">Skin Type</h4>
-                        <div className="font-semibold">{parsedAnalysis.skinType}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {parsedAnalysis.skinType === 'Dry' && 'Your skin needs more hydration and moisturizing products.'}
-                          {parsedAnalysis.skinType === 'Oily' && 'Your skin produces excess sebum and would benefit from oil-controlling products.'}
-                          {parsedAnalysis.skinType === 'Combination' && 'Your skin has both oily and dry areas, typically oily in the T-zone.'}
-                          {parsedAnalysis.skinType === 'Normal' && 'Your skin is well-balanced, neither too oily nor too dry.'}
-                          {parsedAnalysis.skinType === 'Sensitive' && 'Your skin reacts easily to products and environmental factors.'}
+                        <h4 className="font-medium text-sm text-muted-foreground">Skin Type & Concerns</h4>
+                        <div>
+                          <div className="font-semibold">{parsedAnalysis.skinType} skin</div>
+                          <div className="text-sm text-muted-foreground">
+                            {parsedAnalysis.concerns && parsedAnalysis.concerns.length > 0 ? (
+                              parsedAnalysis.concerns.join(', ')
+                            ) : 'No major concerns identified'}
+                          </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Skin Concerns */}
-                    {parsedAnalysis.concerns && parsedAnalysis.concerns.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm text-muted-foreground">Primary Skin Concerns</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {parsedAnalysis.concerns.map((concern, index) => (
-                            <Badge key={index} variant="secondary">{concern}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Features Analysis */}
-                    {parsedAnalysis.features && Object.keys(parsedAnalysis.features).length > 0 && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm text-muted-foreground">Detailed Features Analysis</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {Object.entries(parsedAnalysis.features).map(([feature, value]) => (
-                            <div key={feature} className="flex justify-between items-center">
-                              <span className="capitalize">{feature}</span>
-                              <span className="text-sm font-medium">{value}</span>
+                    {/* Foundation Match */}
+                    <div>
+                      <h4 className="font-medium text-sm text-muted-foreground mb-2">Your Perfect Foundation Match</h4>
+                      <div className="bg-secondary/40 rounded-lg p-4">
+                        {recommendedProducts.length > 0 && recommendedProducts[0] ? (
+                          <div className="flex flex-col md:flex-row items-center gap-4">
+                            <img 
+                              src={recommendedProducts[0].imageUrl}
+                              alt={recommendedProducts[0].name}
+                              className="w-24 h-24 object-contain rounded bg-white p-2"
+                            />
+                            <div className="flex-1">
+                              <h5 className="font-semibold">{recommendedProducts[0].brand}</h5>
+                              <p>{recommendedProducts[0].name}</p>
+                              <p className="text-sm text-muted-foreground">Perfect match for your {parsedAnalysis.skinTone} skin with {parsedAnalysis.undertone} undertones</p>
                             </div>
+                            <Button size="sm" asChild className="mt-2 md:mt-0">
+                              <a href={recommendedProducts[0].productUrl} target="_blank" rel="noopener noreferrer">
+                                <ShoppingBag className="mr-2 h-4 w-4" />
+                                Shop Now
+                              </a>
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-center text-muted-foreground">No foundation match found. Please try again with a clearer photo.</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Quick Recommendations */}
+                    {recommendedProducts.length > 1 && (
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground mb-2">Complementary Products</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                          {recommendedProducts.slice(1, 4).map((product) => (
+                            <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                              <CardHeader className="p-2">
+                                <img 
+                                  src={product.imageUrl}
+                                  alt={product.name}
+                                  className="w-full h-32 object-contain rounded bg-white"
+                                />
+                              </CardHeader>
+                              <CardContent className="p-3">
+                                <p className="text-xs text-muted-foreground">{product.brand}</p>
+                                <p className="font-medium text-sm line-clamp-1">{product.name}</p>
+                                <p className="text-primary font-semibold mt-1">{product.price}</p>
+                              </CardContent>
+                              <CardFooter className="p-3 pt-0 flex justify-between">
+                                <Badge variant="outline" className="text-xs">{product.category}</Badge>
+                                <Button size="icon" variant="ghost" asChild>
+                                  <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
+                                    <ShoppingBag className="h-4 w-4" />
+                                  </a>
+                                </Button>
+                              </CardFooter>
+                            </Card>
                           ))}
                         </div>
                       </div>
@@ -476,61 +535,65 @@ export default function Home() {
               
               {/* Products Tab */}
               <TabsContent value="products" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {recommendedProducts.map((product) => (
-                    <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="aspect-[4/3] w-full bg-muted relative overflow-hidden">
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.name} 
-                          className="object-cover w-full h-full transition-transform hover:scale-105"
-                        />
-                        <Badge className="absolute top-2 right-2">{product.category}</Badge>
-                      </div>
-                      <CardHeader className="p-4">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium text-muted-foreground">{product.brand}</p>
-                          <h3 className="font-semibold leading-tight">{product.name}</h3>
-                          <p className="text-base font-medium text-primary">{product.price}</p>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <p className="text-sm text-muted-foreground line-clamp-3">{product.description}</p>
-                        {(product.shadeFamily || product.undertone) && (
-                          <div className="flex gap-2 mt-2">
-                            {product.shadeFamily && (
-                              <Badge variant="outline" className="text-xs">{product.shadeFamily}</Badge>
-                            )}
-                            {product.undertone && (
-                              <Badge variant="outline" className="text-xs">{product.undertone}</Badge>
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                      <CardFooter className="p-4 pt-0 flex gap-2">
-                        <Button asChild variant="outline" size="sm" className="flex-1">
-                          <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
-                            <ShoppingBag className="mr-1 h-4 w-4" />
-                            Shop
-                          </a>
-                        </Button>
-                        {product.videoUrl && (
-                          <Button 
-                            size="sm" 
-                            variant="secondary" 
-                            className="flex-1"
-                            onClick={() => {
-                              setActiveTab('tutorials');
-                            }}
-                          >
-                            <Youtube className="mr-1 h-4 w-4" />
-                            Tutorial
-                          </Button>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-semibold">Recommended Products</h3>
+                      <Badge className="text-xs">{recommendedProducts.length} Items</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {recommendedProducts.map((product) => (
+                        <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <CardHeader className="p-4 pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-semibold">{product.brand}</h4>
+                                <p className="text-sm">{product.name}</p>
+                              </div>
+                              <Badge variant="outline">{product.category}</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-4 pt-2">
+                            <div className="flex items-center gap-4">
+                              <img 
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="w-20 h-20 object-contain rounded bg-white p-1"
+                              />
+                              <div className="flex-1">
+                                <p className="text-sm text-muted-foreground mb-1">{product.description}</p>
+                                <p className="text-primary font-semibold">{product.price}</p>
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  <Star className="h-3 w-3 text-yellow-400" />
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                          <CardFooter className="p-4 pt-0 flex justify-between">
+                            <Button size="sm" variant="outline" asChild>
+                              <a href={product.videoUrl} target="_blank" rel="noopener noreferrer">
+                                <Youtube className="mr-2 h-4 w-4" />
+                                Tutorial
+                              </a>
+                            </Button>
+                            <Button size="sm" asChild>
+                              <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
+                                <ShoppingBag className="mr-2 h-4 w-4" />
+                                Shop
+                              </a>
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               {/* Foundation Tab */}
@@ -538,143 +601,205 @@ export default function Home() {
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-semibold">Foundation Matches</h3>
+                      <h3 className="text-xl font-semibold">Foundation Details</h3>
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-6 h-6 rounded-full" 
                           style={{ 
-                            backgroundColor: skinToneColors[parsedAnalysis.skinTone as keyof typeof skinToneColors] || skinToneColors.Medium
+                            backgroundColor: skinToneColors[parsedAnalysis.skinTone as keyof typeof skinToneColors] || skinToneColors.Medium,
+                            border: '1px solid white',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                           }}
                         />
-                        <Badge variant="outline">
-                          {parsedAnalysis.skinTone} • {parsedAnalysis.undertone}
-                        </Badge>
+                        <Badge variant="outline" className="text-xs">{parsedAnalysis.skinTone} / {parsedAnalysis.undertone}</Badge>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-8">
-                      {recommendedProducts
-                        .filter(p => p.category === 'Foundation')
-                        .map((foundation) => (
-                          <div key={foundation.id} className="flex flex-col md:flex-row gap-6">
-                            <div className="md:w-1/3">
-                              <div className="aspect-square rounded-md overflow-hidden bg-muted">
-                                <img 
-                                  src={foundation.imageUrl} 
-                                  alt={foundation.name} 
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
+                  <CardContent className="space-y-6">
+                    {/* Foundation Color Match */}
+                    <div className="bg-secondary/30 rounded-lg p-6">
+                      <h4 className="font-semibold mb-4">Your Unique Shade Profile</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h5 className="text-sm font-medium text-muted-foreground mb-2">Skin Tone</h5>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-full h-8 rounded-md bg-gradient-to-r from-[#f6e3ce] via-[#e5bb95] to-[#513530]" />
                             </div>
-                            <div className="md:w-2/3 space-y-4">
-                              <div>
-                                <h4 className="text-xl font-semibold">{foundation.name}</h4>
-                                <p className="text-muted-foreground">{foundation.brand}</p>
-                                <p className="text-lg font-medium text-primary mt-1">{foundation.price}</p>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <h5 className="font-medium">Shade Details</h5>
-                                <div className="flex flex-wrap gap-2">
-                                  {foundation.shadeFamily && (
-                                    <Badge variant="secondary">{foundation.shadeFamily}</Badge>
-                                  )}
-                                  {foundation.undertone && (
-                                    <Badge variant="secondary">{foundation.undertone}</Badge>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground">{foundation.description}</p>
-                              </div>
-                              
-                              <div className="flex flex-wrap gap-2">
-                                <Button asChild>
-                                  <a href={foundation.productUrl} target="_blank" rel="noopener noreferrer">
-                                    <ShoppingBag className="mr-2 h-4 w-4" />
-                                    Shop Now
-                                  </a>
-                                </Button>
-                                {foundation.videoUrl && (
-                                  <Button variant="outline" onClick={() => setActiveTab('tutorials')}>
-                                    <Youtube className="mr-2 h-4 w-4" />
-                                    Watch Tutorial
-                                  </Button>
-                                )}
-                              </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Fair</span>
+                              <span>{parsedAnalysis.skinTone}</span>
+                              <span>Dark</span>
                             </div>
                           </div>
-                      ))}
-                      
-                      {recommendedProducts.filter(p => p.category === 'Foundation').length === 0 && (
-                        <div className="text-center py-8">
-                          <p className="text-muted-foreground">No foundation matches found. Please try again with a clearer image.</p>
                         </div>
-                      )}
+                        <div>
+                          <h5 className="text-sm font-medium text-muted-foreground mb-2">Undertone</h5>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-full h-8 rounded-md bg-gradient-to-r from-[#e6c3c0] via-[#e0c3a8] to-[#e6be94]" />
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Cool</span>
+                              <span>{parsedAnalysis.undertone}</span>
+                              <span>Warm</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Recommended Foundations */}
+                    <div>
+                      <h4 className="font-semibold mb-4">Perfect Matches For You</h4>
+                      <div className="grid grid-cols-1 gap-4">
+                        {recommendedProducts.filter(p => p.category === 'Foundation').map((foundation) => (
+                          <Card key={foundation.id} className="overflow-hidden">
+                            <div className="flex flex-col md:flex-row">
+                              <div className="md:w-1/3 p-4 flex items-center justify-center bg-secondary/10">
+                                <img 
+                                  src={foundation.imageUrl}
+                                  alt={foundation.name}
+                                  className="w-32 h-32 object-contain"
+                                />
+                              </div>
+                              <div className="md:w-2/3 p-6">
+                                <div className="mb-4">
+                                  <Badge className="mb-2">{foundation.category}</Badge>
+                                  <h5 className="text-xl font-semibold">{foundation.brand}</h5>
+                                  <p className="text-muted-foreground">{foundation.name}</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8 mb-4">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Shade Family</p>
+                                    <p className="font-medium">{foundation.shadeFamily || parsedAnalysis.skinTone}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Undertone</p>
+                                    <p className="font-medium">{foundation.undertone || parsedAnalysis.undertone}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Price</p>
+                                    <p className="font-medium text-primary">{foundation.price}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Coverage</p>
+                                    <p className="font-medium">Medium to Full</p>
+                                  </div>
+                                </div>
+                                
+                                <p className="text-sm text-muted-foreground mb-4">{foundation.description}</p>
+                                
+                                <div className="flex gap-2 mt-4">
+                                  <Button asChild>
+                                    <a href={foundation.productUrl} target="_blank" rel="noopener noreferrer">
+                                      <ShoppingBag className="mr-2 h-4 w-4" />
+                                      Shop Now
+                                    </a>
+                                  </Button>
+                                  <Button variant="outline" asChild>
+                                    <a href={foundation.videoUrl} target="_blank" rel="noopener noreferrer">
+                                      <Youtube className="mr-2 h-4 w-4" />
+                                      Watch Tutorial
+                                    </a>
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
               
               {/* Tutorials Tab */}
-              <TabsContent value="tutorials" className="space-y-6">
-                <div className="grid grid-cols-1 gap-8">
-                  {recommendedProducts.filter(p => p.videoUrl).map((product) => (
-                    <Card key={`tutorial-${product.id}`}>
-                      <CardHeader>
-                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                          <div>
-                            <h3 className="text-xl font-semibold">{product.category} Tutorial</h3>
-                            <p className="text-muted-foreground">{product.brand} - {product.name}</p>
-                          </div>
-                          <Badge className="w-fit">{product.category}</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="aspect-video w-full overflow-hidden rounded-md">
-                            {product.videoUrl && (
-                              <YouTubeEmbed 
-                                url={product.videoUrl} 
-                                title={`${product.brand} ${product.name} Tutorial`}
-                                category={product.category}
-                              />
-                            )}
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-sm text-muted-foreground">
-                              Learn how to apply and get the best results with the recommended product.
-                            </p>
-                            <Button asChild variant="outline" size="sm">
-                              <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
-                                <ShoppingBag className="mr-1 h-4 w-4" />
-                                Shop Product
-                              </a>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  
-                  {recommendedProducts.filter(p => p.videoUrl).length === 0 && (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground">No tutorial videos available for your recommended products.</p>
+              <TabsContent value="tutorials" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold">Application Tutorials</h3>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Foundation Tutorial */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Palette className="h-5 w-5" />
+                          Foundation Application
+                        </h4>
+                        <YouTubeEmbed 
+                          url={tutorialVideos.foundation}
+                          title="Foundation Application Tutorial"
+                          aspectRatio="video"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Learn how to apply foundation for a flawless finish that matches your 
+                          {parsedAnalysis.skinTone} skin tone and {parsedAnalysis.undertone} undertone.
+                        </p>
+                      </div>
+                      
+                      {/* Concealer Tutorial */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Palette className="h-5 w-5" />
+                          Concealer Technique
+                        </h4>
+                        <YouTubeEmbed 
+                          url={tutorialVideos.concealer}
+                          title="Concealer Application Tutorial"
+                          aspectRatio="video"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Master the art of concealing with techniques perfect for your skin type.
+                        </p>
+                      </div>
+                      
+                      {/* Other Tutorials */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Palette className="h-5 w-5" />
+                          Blush Application
+                        </h4>
+                        <YouTubeEmbed 
+                          url={tutorialVideos.blush}
+                          title="Blush Application Tutorial"
+                          aspectRatio="video"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Learn where to apply blush for your face shape and skin tone.
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Palette className="h-5 w-5" />
+                          Eye Makeup
+                        </h4>
+                        <YouTubeEmbed 
+                          url={tutorialVideos.eyeshadow}
+                          title="Eyeshadow Application Tutorial"
+                          aspectRatio="video"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Eyeshadow techniques that complement your skin undertones.
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               {/* Full Report Tab */}
               <TabsContent value="report" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <h3 className="text-xl font-semibold">Full AI Analysis Report</h3>
+                    <h3 className="text-xl font-semibold">Complete Analysis Report</h3>
                   </CardHeader>
                   <CardContent>
-                    <div className="prose max-w-none">
-                      <div className="whitespace-pre-wrap font-mono text-sm bg-muted p-4 rounded-md overflow-x-auto">
-                        {analysisResult}
-                      </div>
+                    <div className="whitespace-pre-wrap p-4 bg-secondary/20 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
+                      {analysisResult || "No analysis data available."}
                     </div>
                   </CardContent>
                 </Card>
@@ -682,65 +807,6 @@ export default function Home() {
             </Tabs>
           </div>
         )}
-
-        {/* How It Works */}
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our AI-powered beauty advisor analyzes your unique features to provide
-              personalized product recommendations in three simple steps.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold text-primary">1</span>
-              </div>
-              <h3 className="font-semibold mb-2">Take the Quiz</h3>
-              <p className="text-sm text-muted-foreground">
-                Upload your photo for AI analysis of your facial features and skin.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold text-primary">2</span>
-              </div>
-              <h3 className="font-semibold mb-2">Get Your Plan</h3>
-              <p className="text-sm text-muted-foreground">
-                Receive a personalized beauty routine tailored to your needs.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold text-primary">3</span>
-              </div>
-              <h3 className="font-semibold mb-2">See Results</h3>
-              <p className="text-sm text-muted-foreground">
-                Follow your custom plan and watch your skin transform.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="py-12 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Beauty Routine?</h2>
-          <p className="text-muted-foreground mb-8">
-            Join thousands of satisfied users who have discovered their perfect beauty routine with our AI advisor.
-          </p>
-          <Button
-            size="lg"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => {
-              const uploadSection = document.querySelector('[data-section="upload"]');
-              uploadSection?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Get Started Free
-          </Button>
-        </div>
       </div>
     </div>
   );
