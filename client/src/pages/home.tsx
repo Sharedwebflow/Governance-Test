@@ -232,18 +232,52 @@ export default function Home() {
       setAnalysisResult(data);
       
       try {
-        // Extract skin tone and undertone using regex for consistent format
-        // Example formats: "Skin Tone: Medium with warm undertones" or "Undertone: Neutral"
+        // Enhanced regex patterns to better detect the format from OpenAI
+        // Example formats that will be matched: 
+        // "Skin Tone: Medium" or "Undertone: Neutral" or "Skin Tone: Medium with warm undertones"
         const skinToneMatch = data.match(/(?:skin\s*tone|complexion):\s*([^.\n,]+)/i);
         const undertoneMatch = data.match(/(?:undertone|undertones):\s*([^.\n,]+)/i);
         
-        // Clean up the extracted strings and get the first word as the simple value
-        const undertoneFullText = undertoneMatch ? undertoneMatch[1].trim() : 'Neutral';
-        const cleanUndertone = undertoneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+        // If those didn't match, try alternative formats that might appear in AI responses
+        // Like "Your skin tone is Medium" or "You have a Warm undertone"
+        const altSkinToneMatch = !skinToneMatch && data.match(/skin\s*tone\s*(?:is|appears to be)\s*([^.\n,]+)/i);
+        const altUndertoneMatch = !undertoneMatch && data.match(/(?:have|has|with)\s*(?:a|an)\s*([^.\n,]+)\s*undertone/i);
         
-        // Extract the simple skin tone descriptor for consistency
-        const skinToneFullText = skinToneMatch ? skinToneMatch[1].trim() : 'Medium';
-        const simpleSkinTone = skinToneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+        // Process the undertone - first try the primary match, then alternative, then default
+        let undertoneFullText = 'Neutral'; // Default fallback
+        if (undertoneMatch && undertoneMatch[1]) {
+          undertoneFullText = undertoneMatch[1].trim();
+        } else if (altUndertoneMatch && altUndertoneMatch[1]) {
+          undertoneFullText = altUndertoneMatch[1].trim();
+        }
+        
+        // Clean and standardize the undertone value
+        let cleanUndertone = undertoneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+        // Make sure it's one of our valid undertone values
+        if (!['Warm', 'Cool', 'Neutral', 'warm', 'cool', 'neutral'].includes(cleanUndertone)) {
+          console.warn(`Unexpected undertone value: "${cleanUndertone}", defaulting to Neutral`);
+          cleanUndertone = 'Neutral';
+        }
+        // Ensure first letter is capitalized
+        cleanUndertone = cleanUndertone.charAt(0).toUpperCase() + cleanUndertone.slice(1).toLowerCase();
+        
+        // Process the skin tone - first try the primary match, then alternative, then default
+        let skinToneFullText = 'Medium'; // Default fallback
+        if (skinToneMatch && skinToneMatch[1]) {
+          skinToneFullText = skinToneMatch[1].trim();
+        } else if (altSkinToneMatch && altSkinToneMatch[1]) {
+          skinToneFullText = altSkinToneMatch[1].trim();
+        }
+        
+        // Clean and standardize the skin tone value
+        let simpleSkinTone = skinToneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+        // Make sure it's one of our valid skin tone values
+        if (!['Fair', 'Light', 'Medium', 'Tan', 'Deep', 'Dark', 'fair', 'light', 'medium', 'tan', 'deep', 'dark'].includes(simpleSkinTone)) {
+          console.warn(`Unexpected skin tone value: "${simpleSkinTone}", defaulting to Medium`);
+          simpleSkinTone = 'Medium';
+        }
+        // Ensure first letter is capitalized
+        simpleSkinTone = simpleSkinTone.charAt(0).toUpperCase() + simpleSkinTone.slice(1).toLowerCase();
         
         console.log('Extracted skin tone:', simpleSkinTone, 'Undertone:', cleanUndertone);
         
@@ -348,6 +382,54 @@ export default function Home() {
             </Button>
           </div>
         </div>
+        
+        {/* How It Works Section */}
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold mb-4">How Our AI Works</h2>
+            <p className="text-muted-foreground mb-6">
+              Our advanced AI analyzes your facial features in seconds to provide a complete beauty profile
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <Card className="bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="rounded-full w-12 h-12 bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                  <Scan className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Skin Analysis</h3>
+                <p className="text-center text-sm text-muted-foreground">
+                  Our AI examines your skin tone and undertone to identify your perfect foundation match
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="rounded-full w-12 h-12 bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                  <Palette className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Product Matching</h3>
+                <p className="text-center text-sm text-muted-foreground">
+                  Get personalized recommendations for foundation, concealer, blush, and more
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="rounded-full w-12 h-12 bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                  <Youtube className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-center mb-2">Tutorial Videos</h3>
+                <p className="text-center text-sm text-muted-foreground">
+                  Access expert application techniques perfectly suited for your specific features
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         {/* Image Upload Section */}
         <div className="max-w-3xl mx-auto" data-section="upload">
@@ -419,7 +501,7 @@ export default function Home() {
               <TabsList className="grid grid-cols-3 md:grid-cols-5 mb-8">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="products">Products</TabsTrigger>
-                <TabsTrigger value="foundation">Foundation</TabsTrigger>
+                <TabsTrigger value="shade">Shade Match</TabsTrigger>
                 <TabsTrigger value="tutorials">Tutorials</TabsTrigger>
                 <TabsTrigger value="report">Full Report</TabsTrigger>
               </TabsList>
@@ -596,8 +678,8 @@ export default function Home() {
                 </Card>
               </TabsContent>
               
-              {/* Foundation Tab */}
-              <TabsContent value="foundation" className="space-y-4">
+              {/* Shade Match Tab */}
+              <TabsContent value="shade" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
@@ -798,8 +880,37 @@ export default function Home() {
                     <h3 className="text-xl font-semibold">Complete Analysis Report</h3>
                   </CardHeader>
                   <CardContent>
-                    <div className="whitespace-pre-wrap p-4 bg-secondary/20 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
-                      {analysisResult || "No analysis data available."}
+                    <div className="whitespace-pre-wrap p-6 bg-secondary/20 rounded-lg font-mono text-sm max-h-[600px] overflow-y-auto">
+                      {analysisResult ? (
+                        <div className="prose prose-sm max-w-none">
+                          {analysisResult.split('\n').map((line, index) => {
+                            // Make headings bold
+                            if (line.includes(':') && !line.includes(' ')) {
+                              return <h3 key={index} className="font-bold mt-4 mb-2 text-primary">{line}</h3>;
+                            }
+                            // Make section titles stand out
+                            else if (line.includes(':') && line.split(':')[0].length < 30) {
+                              const [title, content] = line.split(':');
+                              return (
+                                <p key={index} className="my-1">
+                                  <span className="font-semibold">{title}:</span>
+                                  <span>{content}</span>
+                                </p>
+                              );
+                            }
+                            // Keep empty lines for spacing
+                            else if (line.trim() === '') {
+                              return <br key={index} />;
+                            }
+                            // Regular content
+                            else {
+                              return <p key={index} className="my-1">{line}</p>;
+                            }
+                          })}
+                        </div>
+                      ) : (
+                        "No analysis data available."
+                      )}
                     </div>
                   </CardContent>
                 </Card>
