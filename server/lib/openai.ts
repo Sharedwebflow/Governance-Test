@@ -31,14 +31,19 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<string
               type: "text",
               text: `As a professional makeup artist, analyze this image and provide personalized makeup recommendations tailored to the individual's features. Focus on foundation shade matching and complementary makeup products. Ensure the recommendations are detailed, practical, and aligned with current beauty trends.
 
-EXTREMELY IMPORTANT: You must make direct assertions rather than using phrases like "Identify if" or "Determine if". For example, instead of "Determine if the skin has a warm Undertone", say "Warm Undertone". Instead of "Identify if the skin is light Tone", say "Light Tone". DO NOT include instructional language in your responses. Format your response as follows:
+EXTREMELY IMPORTANT: You must make direct assertions rather than using phrases like "Identify if" or "Determine if". For example, instead of "Determine if the skin has a warm Undertone", say simply "Warm". Instead of "Identify if the skin is light Tone", say simply "Light". 
+
+CRITICAL: For undertone, choose ONLY ONE of these options: Warm, Cool, or Neutral. 
+CRITICAL: For skin tone, choose ONLY ONE of these options: Fair, Light, Medium, Tan, Deep, or Dark.
+
+DO NOT include additional descriptors or instructional language in your responses. Format your response as follows:
 
 Foundation Recommendation:
 Undertone: [Warm/Cool/Neutral] – Determine based on visible skin characteristics.
 
 Shade Description: [Light/Medium/Deep with distinguishing features like golden, olive, pink, etc.]
 
-Suggested Foundation Shades: [List 2-3 specific shade recommendations from well-known brands (e.g., Fenty Beauty, NARS, MAC, etc.)]
+Suggested Foundation Shade: [Provide ONLY ONE specific shade recommendation from a well-known brand (e.g., Fenty Beauty, NARS, MAC, etc.)]
 
 Complementary Products:
 Concealer

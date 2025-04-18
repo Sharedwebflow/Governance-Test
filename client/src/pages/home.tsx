@@ -127,28 +127,20 @@ export default function Home() {
           const undertoneMatch = data.analysis.match(/undertone[:\s]+([^\n.,]+)/i);
           
           // Clean up any placeholder text that may appear in the AI response
-          const cleanUndertone = undertoneMatch 
-            ? undertoneMatch[1].trim()
-                .replace(/\*\*/g, '')
-                .replace(/identify if (the skin|your skin) (has|is) (a |an )?/i, '')
-                .replace(/determine if (the skin|your skin) (has|is) (a |an )?/i, '')
-                .replace(/^(the skin|your skin) (has|is) (a |an )?/i, '')
-            : 'Neutral';
-            
-          const cleanSkinTone = skinToneMatch
-            ? skinToneMatch[1].trim()
-                .replace(/\*\*/g, '')
-                .replace(/identify if (the skin|your skin) (has|is) (a |an )?/i, '')
-                .replace(/determine if (the skin|your skin) (has|is) (a |an )?/i, '')
-                .replace(/^(the skin|your skin) (has|is) (a |an )?/i, '')
-            : 'Medium';
+          // Extract just the first word for undertone to get just Warm/Cool/Neutral
+          const undertoneFullText = undertoneMatch ? undertoneMatch[1].trim() : 'Neutral';
+          const cleanUndertone = undertoneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+          
+          // Extract the simple skin tone descriptor for consistency
+          const skinToneFullText = skinToneMatch ? skinToneMatch[1].trim() : 'Medium';
+          const simpleSkinTone = skinToneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
           
           parsedData = {
             skinType: data.skinType || 'Normal',
             concerns: data.concerns || [],
             features: {},
             recommendations: [],
-            skinTone: cleanSkinTone,
+            skinTone: simpleSkinTone,
             undertone: cleanUndertone
           };
           
