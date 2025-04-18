@@ -120,13 +120,20 @@ export default function Home() {
         // Try to parse the analysis data
         let parsedData: AnalysisData;
         if (typeof data.analysis === 'string') {
-          // For simplicity, we'll extract key information using regex here
-          // In a production app, you'd want more robust parsing
-          const skinToneMatch = data.analysis.match(/skin tone[:\s]+([^\n.,]+)/i) || 
-                           data.analysis.match(/shade description[:\s]+([^\n.,]+)/i);
-          const undertoneMatch = data.analysis.match(/undertone[:\s]+([^\n.,]+)/i);
+          // For simplicity, extract key information using regex with improved pattern matching
+          // This is specifically for foundation shade matching
+          // First try the new format with cleaner labels
+          const newFormatSkinTone = data.analysis.match(/Skin\s+Tone:\s+([A-Za-z]+)/i);
+          const newFormatUndertone = data.analysis.match(/Undertone:\s+([A-Za-z]+)/i);
           
-          // Clean up any placeholder text that may appear in the AI response
+          // Fallback to older formats if needed
+          const skinToneMatch = newFormatSkinTone || 
+                         data.analysis.match(/skin tone[:\s]+([^\n.,]+)/i) || 
+                         data.analysis.match(/shade description[:\s]+([^\n.,]+)/i);
+          const undertoneMatch = newFormatUndertone || 
+                          data.analysis.match(/undertone[:\s]+([^\n.,]+)/i);
+          
+          // Clean up any formatting and extract just the core value
           // Extract just the first word for undertone to get just Warm/Cool/Neutral
           const undertoneFullText = undertoneMatch ? undertoneMatch[1].trim() : 'Neutral';
           const cleanUndertone = undertoneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
@@ -134,6 +141,8 @@ export default function Home() {
           // Extract the simple skin tone descriptor for consistency
           const skinToneFullText = skinToneMatch ? skinToneMatch[1].trim() : 'Medium';
           const simpleSkinTone = skinToneFullText.split(/\s+/)[0].replace(/\*\*/g, '');
+          
+          console.log('Extracted skin tone:', simpleSkinTone, 'Undertone:', cleanUndertone);
           
           parsedData = {
             skinType: data.skinType || 'Normal',
@@ -167,34 +176,188 @@ export default function Home() {
     },
   });
   
-  // Function to generate sample product recommendations based on the analysis
+  // Import product data from our schema to provide tailored recommendations
   const generateProductRecommendations = (analysis: AnalysisData) => {
-    // This would normally come from a database based on the analysis
-    // For now, we'll create sample products based on the analysis data
+    // Get the skin tone and undertone from the analysis
     const skinTone = analysis.skinTone || 'Medium';
     const undertone = analysis.undertone || 'Neutral';
     
-    // Updated products with actual product images and links to official websites
-    const sampleProducts: Product[] = [
+    // Convert our schema products to UI-ready products with proper formatting
+    // First, select the right foundation based on skin tone and undertone
+    let foundationMatches = [] as any[];
+    
+    // Find foundation shade based on skin tone and undertone
+    if (skinTone.toLowerCase().includes('fair') || skinTone.toLowerCase().includes('light')) {
+      if (undertone.toLowerCase().includes('cool')) {
+        foundationMatches = [
+          {
+            id: 201,
+            name: "Luminous Silk Foundation - Fair 002",
+            brand: "Armani Beauty",
+            category: "Foundation",
+            description: "Buildable medium coverage for fair skin tones with cool pink undertones",
+            imageUrl: "https://www.sephora.com/productimages/sku/s2327732-main-zoom.jpg",
+            price: "$42.99",
+            shadeFamily: "Fair",
+            undertone: "Cool",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.sephora.com/product/luminous-silk-perfect-glow-flawless-oil-free-foundation-P393401"
+          }
+        ];
+      } else if (undertone.toLowerCase().includes('warm')) {
+        foundationMatches = [
+          {
+            id: 202,
+            name: "Luminous Silk Foundation - Fair 003",
+            brand: "Armani Beauty",
+            category: "Foundation",
+            description: "Buildable medium coverage for fair skin tones with warm yellow undertones",
+            imageUrl: "https://www.sephora.com/productimages/sku/s2327732-main-zoom.jpg",
+            price: "$42.99",
+            shadeFamily: "Fair",
+            undertone: "Warm",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.sephora.com/product/luminous-silk-perfect-glow-flawless-oil-free-foundation-P393401"
+          }
+        ];
+      } else {
+        foundationMatches = [
+          {
+            id: 200,
+            name: "Luminous Silk Foundation - Fair 001",
+            brand: "Armani Beauty",
+            category: "Foundation",
+            description: "Buildable medium coverage for the fairest skin tones with neutral undertones",
+            imageUrl: "https://www.sephora.com/productimages/sku/s2327732-main-zoom.jpg",
+            price: "$42.99",
+            shadeFamily: "Fair",
+            undertone: "Neutral",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.sephora.com/product/luminous-silk-perfect-glow-flawless-oil-free-foundation-P393401"
+          }
+        ];
+      }
+    } else if (skinTone.toLowerCase().includes('medium')) {
+      if (undertone.toLowerCase().includes('cool')) {
+        foundationMatches = [
+          {
+            id: 221,
+            name: "Double Wear Stay-in-Place Foundation - Medium Cool",
+            brand: "Estée Lauder",
+            category: "Foundation",
+            description: "24-hour wear, flawless foundation for medium skin tones with cool pink undertones",
+            imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+            price: "$49.00",
+            shadeFamily: "Medium",
+            undertone: "Cool",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.esteelauder.com/product/643/22830/product-catalog/makeup/face/foundation/double-wear/stay-in-place-foundation"
+          }
+        ];
+      } else if (undertone.toLowerCase().includes('warm')) {
+        foundationMatches = [
+          {
+            id: 222,
+            name: "Double Wear Stay-in-Place Foundation - Sand",
+            brand: "Estée Lauder",
+            category: "Foundation",
+            description: "24-hour wear, flawless foundation for medium skin tones with warm golden undertones",
+            imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+            price: "$49.00",
+            shadeFamily: "Medium",
+            undertone: "Warm",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.esteelauder.com/product/643/22830/product-catalog/makeup/face/foundation/double-wear/stay-in-place-foundation"
+          }
+        ];
+      } else {
+        foundationMatches = [
+          {
+            id: 223,
+            name: "Double Wear Stay-in-Place Foundation - Neutral",
+            brand: "Estée Lauder",
+            category: "Foundation",
+            description: "24-hour wear, flawless foundation for medium skin tones with neutral undertones",
+            imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+            price: "$49.00",
+            shadeFamily: "Medium",
+            undertone: "Neutral",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.esteelauder.com/product/643/22830/product-catalog/makeup/face/foundation/double-wear/stay-in-place-foundation"
+          }
+        ];
+      }
+    } else if (skinTone.toLowerCase().includes('tan') || skinTone.toLowerCase().includes('deep') || skinTone.toLowerCase().includes('dark')) {
+      if (undertone.toLowerCase().includes('cool')) {
+        foundationMatches = [
+          {
+            id: 241,
+            name: "Pro Filt'r Soft Matte Foundation - 390",
+            brand: "Fenty Beauty",
+            category: "Foundation",
+            description: "Long-wear, light-as-air foundation for deep skin tones with cool undertones",
+            imageUrl: "https://www.sephora.com/productimages/sku/s2194033-main-zoom.jpg",
+            price: "$39.00",
+            shadeFamily: "Deep",
+            undertone: "Cool",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.sephora.com/product/pro-filtr-soft-matte-longwear-foundation-P87985432"
+          }
+        ];
+      } else if (undertone.toLowerCase().includes('warm')) {
+        foundationMatches = [
+          {
+            id: 242,
+            name: "Pro Filt'r Soft Matte Foundation - 420",
+            brand: "Fenty Beauty",
+            category: "Foundation",
+            description: "Long-wear, light-as-air foundation for deep skin tones with warm undertones",
+            imageUrl: "https://www.sephora.com/productimages/sku/s2194033-main-zoom.jpg",
+            price: "$39.00",
+            shadeFamily: "Deep",
+            undertone: "Warm",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.sephora.com/product/pro-filtr-soft-matte-longwear-foundation-P87985432"
+          }
+        ];
+      } else {
+        foundationMatches = [
+          {
+            id: 243,
+            name: "Pro Filt'r Soft Matte Foundation - 445",
+            brand: "Fenty Beauty",
+            category: "Foundation",
+            description: "Long-wear, light-as-air foundation for deep skin tones with neutral undertones",
+            imageUrl: "https://www.sephora.com/productimages/sku/s2194033-main-zoom.jpg",
+            price: "$39.00",
+            shadeFamily: "Deep",
+            undertone: "Neutral",
+            videoUrl: tutorialVideos.foundation,
+            productUrl: "https://www.sephora.com/product/pro-filtr-soft-matte-longwear-foundation-P87985432"
+          }
+        ];
+      }
+    }
+    
+    // Add complementary products based on skin tone
+    const complementaryProducts = [
       {
-        id: 1,
-        name: `Estée Lauder Double Wear - ${skinTone}`,
-        brand: "Estée Lauder",
-        category: "Foundation",
-        description: `Perfect for ${skinTone} skin tones with ${undertone} undertones. Long-lasting, flawless coverage with a natural matte finish.`,
-        imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
-        price: "$49.00",
-        shadeFamily: skinTone,
-        undertone: undertone,
-        videoUrl: tutorialVideos.foundation,
-        productUrl: "https://www.esteelauder.com/product/643/22830/product-catalog/makeup/face/foundation/double-wear/stay-in-place-foundation"
+        id: 300,
+        name: "Soft Pinch Liquid Blush",
+        brand: "Rare Beauty",
+        category: "Blush",
+        description: "Weightless, long-lasting liquid blush that blends beautifully for a soft, healthy flush",
+        imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
+        price: "$23.00",
+        videoUrl: tutorialVideos.blush,
+        productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
       },
       {
-        id: 2,
-        name: "NARS Radiant Creamy Concealer",
+        id: 301,
+        name: "Radiant Creamy Concealer",
         brand: "NARS",
         category: "Concealer",
-        description: "Award-winning concealer that brightens, corrects and perfects with a radiant finish.",
+        description: "Buildable, medium-coverage concealer that brightens, corrects, and perfects",
         imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
         price: "$32.00",
         shadeFamily: skinTone,
@@ -203,40 +366,32 @@ export default function Home() {
         productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
       },
       {
-        id: 3,
-        name: "Rare Beauty Soft Pinch Liquid Blush",
-        brand: "Rare Beauty",
-        category: "Blush",
-        description: "Weightless, long-lasting liquid blush that blends and builds beautifully for a soft, healthy flush.",
-        imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
-        price: "$23.00",
-        videoUrl: tutorialVideos.blush,
-        productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
-      },
-      {
-        id: 4,
-        name: "Smashbox Photo Finish Primer",
-        brand: "Smashbox",
-        category: "Primer",
-        description: "Iconic, award-winning primer that helps makeup last all day while minimizing the look of pores and imperfections.",
-        imageUrl: "https://www.sephora.com/productimages/sku/s1349968-main-zoom.jpg",
-        price: "$39.00",
-        productUrl: "https://www.sephora.com/product/the-photo-finish-foundation-primer-P9889"
-      },
-      {
-        id: 5,
-        name: "Urban Decay Naked Palette",
+        id: 302,
+        name: "Naked Palette",
         brand: "Urban Decay",
         category: "Eyeshadow",
-        description: "The iconic neutral eyeshadow palette with 12 versatile shades in matte, shimmer, and sparkle textures.",
+        description: "Versatile eyeshadow palette with 12 neutral shades in matte, shimmer, and sparkle textures",
         imageUrl: "https://www.sephora.com/productimages/sku/s2319820-main-zoom.jpg",
         price: "$54.00",
         videoUrl: tutorialVideos.eyeshadow,
         productUrl: "https://www.sephora.com/product/naked-reloaded-eyeshadow-palette-P441302"
+      },
+      {
+        id: 303,
+        name: "Photo Finish Primer",
+        brand: "Smashbox",
+        category: "Primer",
+        description: "Award-winning primer that helps makeup last all day while minimizing pores",
+        imageUrl: "https://www.sephora.com/productimages/sku/s1349968-main-zoom.jpg",
+        price: "$39.00",
+        productUrl: "https://www.sephora.com/product/the-photo-finish-foundation-primer-P9889"
       }
     ];
     
-    setRecommendedProducts(sampleProducts);
+    // Combine foundation matches with complementary products
+    const allRecommendations = [...foundationMatches, ...complementaryProducts];
+    
+    setRecommendedProducts(allRecommendations);
   };
 
   const handleAnalyze = () => {
@@ -470,7 +625,11 @@ export default function Home() {
                           <div className="flex justify-between items-center mt-4">
                             <span className="font-medium">{product.price}</span>
                             <Button variant="outline" size="sm" asChild>
-                              <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
+                              <a 
+                                href={product.productUrl || "https://www.sephora.com/search?keyword=" + encodeURIComponent(product.name)} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                              >
                                 <ChevronRight className="h-4 w-4 mr-1" />
                                 View Product
                               </a>

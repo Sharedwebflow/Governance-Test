@@ -29,21 +29,22 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<string
           content: [
             {
               type: "text",
-              text: `As a professional makeup artist, analyze this image and provide personalized makeup recommendations tailored to the individual's features. Focus on foundation shade matching and complementary makeup products. Ensure the recommendations are detailed, practical, and aligned with current beauty trends.
+              text: `You are a professional beauty advisor analyzing this selfie to provide personalized makeup recommendations, with a special focus on foundation shade matching.
 
-EXTREMELY IMPORTANT: You must make direct assertions rather than using phrases like "Identify if" or "Determine if". For example, instead of "Determine if the skin has a warm Undertone", say simply "Warm". Instead of "Identify if the skin is light Tone", say simply "Light". 
+EXTREMELY IMPORTANT:
+1. For UNDERTONE, you must choose EXACTLY ONE option: Warm, Cool, or Neutral. 
+2. For SKIN TONE, you must choose EXACTLY ONE option: Fair, Light, Medium, Tan, Deep, or Dark.
+3. Do not use phrases like "I think" or "appears to be" - make direct assertions.
+4. Be extremely concise and direct in your assessment.
 
-CRITICAL: For undertone, choose ONLY ONE of these options: Warm, Cool, or Neutral. 
-CRITICAL: For skin tone, choose ONLY ONE of these options: Fair, Light, Medium, Tan, Deep, or Dark.
-
-DO NOT include additional descriptors or instructional language in your responses. Format your response as follows:
+Your response must follow this exact format:
 
 Foundation Recommendation:
 Undertone: [Warm/Cool/Neutral] – Determine based on visible skin characteristics.
 
-Shade Description: [Light/Medium/Deep with distinguishing features like golden, olive, pink, etc.]
+Skin Tone: [EXACTLY ONE choice from: Fair, Light, Medium, Tan, Deep, or Dark]
 
-Suggested Foundation Shade: [Provide ONLY ONE specific shade recommendation from a well-known brand (e.g., Fenty Beauty, NARS, MAC, etc.)]
+Suggested Foundation: [ONE specific recommendation, e.g., "MAC Studio Fix in NC30"]
 
 Complementary Products:
 Concealer
@@ -102,16 +103,17 @@ Ensure the response remains focused on makeup recommendations only—do not anal
       throw new Error("No analysis generated");
     }
 
-    // Look for the start of actual recommendations
-    const startMarker = "Foundation Recommendation:";
-    const startIndex = result.indexOf(startMarker);
+    // Look for undertone and skin tone info in the response
+    const undertoneMatch = result.match(/Undertone:\s+([A-Za-z]+)/i);
+    const skinToneMatch = result.match(/Skin\s+Tone:\s+([A-Za-z]+)/i);
     
-    if (startIndex === -1) {
+    if (!undertoneMatch && !skinToneMatch) {
+      console.error("Could not extract undertone or skin tone from:", result);
       throw new Error("Analysis does not contain makeup recommendations");
     }
 
-    // Add the length of the marker to skip it in the output
-    return result.substring(startIndex + startMarker.length);
+    // Just return the full response - we'll parse it on the client side
+    return result;
   } catch (error) {
     console.error('OpenAI API error:', error);
     throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

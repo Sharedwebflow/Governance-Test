@@ -123,6 +123,16 @@ export async function getFallbackYouTubeUrl(url: string, category: string): Prom
     if (isValidFallback) return fallbackUrl;
   }
   
-  // If all fallbacks fail, return the most reliable default
-  return 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Last resort fallback
+  // If all fallbacks fail, return a reliable beauty tutorial by category
+  const categoryDefaults: Record<string, string> = {
+    foundation: 'https://www.youtube.com/embed/mLN4RM-m7yg', // Fenty foundation tutorial
+    concealer: 'https://www.youtube.com/embed/v2D-ZQVlk0s', // Sephora concealer tutorial
+    blush: 'https://www.youtube.com/embed/sRg20WYF-fI', // Charlotte Tilbury blush tutorial
+    eyeshadow: 'https://www.youtube.com/embed/W4W-4VL1ABU', // Lisa Eldridge eyeshadow tutorial
+    lipstick: 'https://www.youtube.com/embed/0LZX6mGKJys' // Charlotte Tilbury lipstick application
+  };
+  
+  // Convert category to lowercase and look up a default, fallback to a generic tutorial
+  const lowerCategory = category.toLowerCase();
+  return categoryDefaults[lowerCategory] || 'https://www.youtube.com/embed/Vd0Uw8S6Aq0'; // Sephora makeup tutorial as final fallback
 }
