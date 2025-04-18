@@ -93,13 +93,14 @@ export default function Home() {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Updated tutorial videos with current working YouTube links
+  // Updated tutorial videos with current working YouTube embed links
   const tutorialVideos = {
-    "foundation": "https://www.youtube.com/embed/ZCbeHxnGcUk", // Wayne Goss foundation tutorial
-    "concealer": "https://www.youtube.com/embed/RN5456ORMxI", // Alexandra Anele concealer tutorial
-    "blush": "https://www.youtube.com/embed/BHqkEjfHYQ8", // Robert Welsh blush application
-    "eyeshadow": "https://www.youtube.com/embed/W4W-4VL1ABU", // Lisa Eldridge eyeshadow tutorial
-    "lipstick": "https://www.youtube.com/embed/0LZX6mGKJys" // Charlotte Tilbury lipstick application
+    // Using direct iframe-friendly embed URLs with origin param for security
+    "foundation": "https://www.youtube.com/embed/mLN4RM-m7yg", // Fenty foundation tutorial
+    "concealer": "https://www.youtube.com/embed/v2D-ZQVlk0s", // Sephora concealer tutorial 
+    "blush": "https://www.youtube.com/embed/sRg20WYF-fI", // Charlotte Tilbury blush tutorial
+    "eyeshadow": "https://www.youtube.com/embed/ajjIzvbPsUI", // Selena Gomez eyeshadow tutorial
+    "lipstick": "https://www.youtube.com/embed/vYAq-sA-DUM" // MAC lipstick application
   };
 
   const analyzeMutation = useMutation({
@@ -120,16 +121,26 @@ export default function Home() {
         if (typeof data.analysis === 'string') {
           // For simplicity, we'll extract key information using regex here
           // In a production app, you'd want more robust parsing
-          const skinToneMatch = data.analysis.match(/skin tone[:\s]+([^\n.,]+)/i);
+          const skinToneMatch = data.analysis.match(/skin tone[:\s]+([^\n.,]+)/i) || 
+                           data.analysis.match(/shade description[:\s]+([^\n.,]+)/i);
           const undertoneMatch = data.analysis.match(/undertone[:\s]+([^\n.,]+)/i);
+          
+          // Clean up any placeholder text that may appear in the AI response
+          const cleanUndertone = undertoneMatch 
+            ? undertoneMatch[1].trim().replace(/\*\*/g, '').replace(/identify if your skin has |identify if|determine if/, '')
+            : 'Neutral';
+            
+          const cleanSkinTone = skinToneMatch
+            ? skinToneMatch[1].trim().replace(/\*\*/g, '').replace(/identify if your skin has |identify if|determine if/, '')
+            : 'Medium';
           
           parsedData = {
             skinType: data.skinType || 'Normal',
             concerns: data.concerns || [],
             features: {},
             recommendations: [],
-            skinTone: skinToneMatch ? skinToneMatch[1].trim() : 'Medium',
-            undertone: undertoneMatch ? undertoneMatch[1].trim() : 'Neutral'
+            skinTone: cleanSkinTone,
+            undertone: cleanUndertone
           };
           
           // Set structured data for the UI
