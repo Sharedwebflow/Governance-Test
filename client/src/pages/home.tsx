@@ -51,7 +51,7 @@ interface AnalysisData {
   [key: string]: any;
 }
 
-// Example product data
+// Product data interface
 interface Product {
   id: number;
   name: string;
@@ -63,6 +63,7 @@ interface Product {
   shadeFamily?: string;
   undertone?: string;
   videoUrl?: string;
+  productUrl: string; // Official product page URL
 }
 
 // Foundation shade family visual guide
@@ -92,13 +93,13 @@ export default function Home() {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Example tutorial videos for different product types
+  // Updated tutorial videos with current working YouTube links
   const tutorialVideos = {
-    "foundation": "https://www.youtube.com/embed/Mqv8J8xbgG4",
-    "concealer": "https://www.youtube.com/embed/0fQi0uSlQtw",
-    "blush": "https://www.youtube.com/embed/BdRk5_tn2hA",
-    "eyeshadow": "https://www.youtube.com/embed/W9bdkMykNEM",
-    "lipstick": "https://www.youtube.com/embed/aWq0oO6fHxQ"
+    "foundation": "https://www.youtube.com/embed/ZCbeHxnGcUk", // Wayne Goss foundation tutorial
+    "concealer": "https://www.youtube.com/embed/RN5456ORMxI", // Alexandra Anele concealer tutorial
+    "blush": "https://www.youtube.com/embed/BHqkEjfHYQ8", // Robert Welsh blush application
+    "eyeshadow": "https://www.youtube.com/embed/W4W-4VL1ABU", // Lisa Eldridge eyeshadow tutorial
+    "lipstick": "https://www.youtube.com/embed/0LZX6mGKJys" // Charlotte Tilbury lipstick application
   };
 
   const analyzeMutation = useMutation({
@@ -161,59 +162,65 @@ export default function Home() {
     const skinTone = analysis.skinTone || 'Medium';
     const undertone = analysis.undertone || 'Neutral';
     
+    // Updated products with actual product images and links to official websites
     const sampleProducts: Product[] = [
       {
         id: 1,
-        name: `Perfect Match Foundation - ${skinTone}`,
-        brand: "BeautyAI",
+        name: `Estée Lauder Double Wear - ${skinTone}`,
+        brand: "Estée Lauder",
         category: "Foundation",
-        description: `Perfect for ${skinTone} skin tones with ${undertone} undertones. Lightweight coverage with a natural finish.`,
-        imageUrl: "https://images.unsplash.com/photo-1631214504717-633a8424c860?q=80&w=300",
-        price: "$39.99",
+        description: `Perfect for ${skinTone} skin tones with ${undertone} undertones. Long-lasting, flawless coverage with a natural matte finish.`,
+        imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+        price: "$49.00",
         shadeFamily: skinTone,
         undertone: undertone,
-        videoUrl: tutorialVideos.foundation
+        videoUrl: tutorialVideos.foundation,
+        productUrl: "https://www.esteelauder.com/product/643/22830/product-catalog/makeup/face/foundation/double-wear/stay-in-place-foundation"
       },
       {
         id: 2,
-        name: "Flawless Concealer",
-        brand: "BeautyAI",
+        name: "NARS Radiant Creamy Concealer",
+        brand: "NARS",
         category: "Concealer",
-        description: "Creamy concealer that covers imperfections without creasing or caking.",
-        imageUrl: "https://images.unsplash.com/photo-1625093742440-b9bc0a71b0f5?q=80&w=300",
-        price: "$24.99",
+        description: "Award-winning concealer that brightens, corrects and perfects with a radiant finish.",
+        imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+        price: "$32.00",
         shadeFamily: skinTone,
         undertone: undertone,
-        videoUrl: tutorialVideos.concealer
+        videoUrl: tutorialVideos.concealer,
+        productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
       },
       {
         id: 3,
-        name: "Natural Blush",
-        brand: "BeautyAI",
+        name: "Rare Beauty Soft Pinch Liquid Blush",
+        brand: "Rare Beauty",
         category: "Blush",
-        description: "Adds a natural flush of color that complements your skin tone perfectly.",
-        imageUrl: "https://images.unsplash.com/photo-1596704017254-9b748e84119c?q=80&w=300",
-        price: "$19.99",
-        videoUrl: tutorialVideos.blush
+        description: "Weightless, long-lasting liquid blush that blends and builds beautifully for a soft, healthy flush.",
+        imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
+        price: "$23.00",
+        videoUrl: tutorialVideos.blush,
+        productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
       },
       {
         id: 4,
-        name: "Hydrating Primer",
-        brand: "BeautyAI",
+        name: "Smashbox Photo Finish Primer",
+        brand: "Smashbox",
         category: "Primer",
-        description: "Smooths skin and creates the perfect base for makeup application.",
-        imageUrl: "https://images.unsplash.com/photo-1617897903246-719242758050?q=80&w=300",
-        price: "$29.99"
+        description: "Iconic, award-winning primer that helps makeup last all day while minimizing the look of pores and imperfections.",
+        imageUrl: "https://www.sephora.com/productimages/sku/s1349968-main-zoom.jpg",
+        price: "$39.00",
+        productUrl: "https://www.sephora.com/product/the-photo-finish-foundation-primer-P9889"
       },
       {
         id: 5,
-        name: "Eye Enhancing Palette",
-        brand: "BeautyAI",
+        name: "Urban Decay Naked Palette",
+        brand: "Urban Decay",
         category: "Eyeshadow",
-        description: "Colors selected to enhance your eye color and complement your skin tone.",
-        imageUrl: "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?q=80&w=300",
-        price: "$45.99",
-        videoUrl: tutorialVideos.eyeshadow
+        description: "The iconic neutral eyeshadow palette with 12 versatile shades in matte, shimmer, and sparkle textures.",
+        imageUrl: "https://www.sephora.com/productimages/sku/s2319820-main-zoom.jpg",
+        price: "$54.00",
+        videoUrl: tutorialVideos.eyeshadow,
+        productUrl: "https://www.sephora.com/product/naked-reloaded-eyeshadow-palette-P441302"
       }
     ];
     
@@ -450,9 +457,11 @@ export default function Home() {
                           </p>
                           <div className="flex justify-between items-center mt-4">
                             <span className="font-medium">{product.price}</span>
-                            <Button variant="outline" size="sm">
-                              <ShoppingBag className="h-4 w-4 mr-2" />
-                              Add to Bag
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
+                                <ChevronRight className="h-4 w-4 mr-1" />
+                                View Product
+                              </a>
                             </Button>
                           </div>
                         </CardContent>
