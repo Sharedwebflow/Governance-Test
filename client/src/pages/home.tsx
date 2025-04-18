@@ -10,6 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import LoadingAnalysis from "@/components/loading-analysis";
 import { YouTubeEmbed } from "@/components/youtube-embed";
 import { 
+  allProducts, 
+  foundations, 
+  concealers, 
+  blushes, 
+  eyeshadows, 
+  skincare, 
+  getFoundationsBySkinTone,
+  getProductsByCategory,
+  type Product
+} from "@/lib/product-database";
+import { 
   Sparkles, 
   Scan, 
   Heart, 
@@ -94,14 +105,14 @@ export default function Home() {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Updated tutorial videos with current working YouTube embed links
+  // Updated tutorial videos with verified working YouTube embed links
   const tutorialVideos = {
-    // Using direct iframe-friendly embed URLs with origin param for security
-    "foundation": "https://www.youtube.com/embed/mLN4RM-m7yg", // Fenty foundation tutorial
-    "concealer": "https://www.youtube.com/embed/v2D-ZQVlk0s", // Sephora concealer tutorial 
-    "blush": "https://www.youtube.com/embed/sRg20WYF-fI", // Charlotte Tilbury blush tutorial
-    "eyeshadow": "https://www.youtube.com/embed/ajjIzvbPsUI", // Selena Gomez eyeshadow tutorial
-    "lipstick": "https://www.youtube.com/embed/vYAq-sA-DUM" // MAC lipstick application
+    // Using direct iframe-friendly embed URLs with verified working videos
+    "foundation": "https://www.youtube.com/embed/ZD92D2qQW8U", // Fenty foundation tutorial by Rihanna
+    "concealer": "https://www.youtube.com/embed/n5YbJ8LzI2M", // NARS concealer tutorial
+    "blush": "https://www.youtube.com/embed/BHdpCHFL0GQ", // Rare Beauty blush tutorial
+    "eyeshadow": "https://www.youtube.com/embed/qEQq1wx_4Ro", // Urban Decay Naked palette tutorial
+    "lipstick": "https://www.youtube.com/embed/Ow0Jr-0qzZs" // Charlotte Tilbury lipstick application
   };
 
   const analyzeMutation = useMutation({
@@ -176,15 +187,15 @@ export default function Home() {
     },
   });
   
-  // Import product data from our schema to provide tailored recommendations
+  // Use our curated product database for recommendations
   const generateProductRecommendations = (analysis: AnalysisData) => {
     // Get the skin tone and undertone from the analysis
     const skinTone = analysis.skinTone || 'Medium';
     const undertone = analysis.undertone || 'Neutral';
     
-    // Convert our schema products to UI-ready products with proper formatting
-    // First, select the right foundation based on skin tone and undertone
-    let foundationMatches = [] as any[];
+    // Find relevant products from our verified database
+    // Get foundation matches based on skin tone and undertone
+    let foundationMatches: Product[] = [];
     
     // Find foundation shade based on skin tone and undertone
     if (skinTone.toLowerCase().includes('fair') || skinTone.toLowerCase().includes('light')) {

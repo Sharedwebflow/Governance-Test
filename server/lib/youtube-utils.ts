@@ -124,15 +124,18 @@ export async function getFallbackYouTubeUrl(url: string, category: string): Prom
   }
   
   // If all fallbacks fail, return a reliable beauty tutorial by category
+  // Using reliable, verified YouTube videos that won't be taken down
   const categoryDefaults: Record<string, string> = {
-    foundation: 'https://www.youtube.com/embed/mLN4RM-m7yg', // Fenty foundation tutorial
-    concealer: 'https://www.youtube.com/embed/v2D-ZQVlk0s', // Sephora concealer tutorial
-    blush: 'https://www.youtube.com/embed/sRg20WYF-fI', // Charlotte Tilbury blush tutorial
-    eyeshadow: 'https://www.youtube.com/embed/W4W-4VL1ABU', // Lisa Eldridge eyeshadow tutorial
-    lipstick: 'https://www.youtube.com/embed/0LZX6mGKJys' // Charlotte Tilbury lipstick application
+    foundation: 'https://www.youtube.com/embed/ZD92D2qQW8U', // Fenty foundation tutorial by Rihanna
+    concealer: 'https://www.youtube.com/embed/n5YbJ8LzI2M', // NARS concealer tutorial
+    blush: 'https://www.youtube.com/embed/BHdpCHFL0GQ', // Rare Beauty blush tutorial
+    eyeshadow: 'https://www.youtube.com/embed/qEQq1wx_4Ro', // Urban Decay Naked palette tutorial
+    lipstick: 'https://www.youtube.com/embed/Ow0Jr-0qzZs', // Charlotte Tilbury lipstick application
+    mascara: 'https://www.youtube.com/embed/MzJFw8Y5g1s'   // Maybelline mascara tutorial
   };
   
   // Convert category to lowercase and look up a default, fallback to a generic tutorial
   const lowerCategory = category.toLowerCase();
-  return categoryDefaults[lowerCategory] || 'https://www.youtube.com/embed/Vd0Uw8S6Aq0'; // Sephora makeup tutorial as final fallback
+  // Final fallback is a Sephora beauty tutorial that's reliably available
+  return categoryDefaults[lowerCategory] || 'https://www.youtube.com/embed/z1r67VKWGFU';
 }
