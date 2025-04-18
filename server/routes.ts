@@ -320,6 +320,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // YouTube video verification endpoint
+  app.post("/api/verify-youtube", async (req, res) => {
+    try {
+      const { url, category = 'foundation' } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ message: "URL is required" });
+      }
+      
+      // First try to convert the URL to an embed URL
+      const embedUrl = createEmbedUrl(url);
+      if (!embedUrl) {
+        return res.status(400).json({ message: "Invalid YouTube URL format" });
+      }
+      
+      // Check if the video is valid and available
+      const isValid = await verifyYouTubeVideo(embedUrl);
+      
+      if (isValid) {
+        // Return the valid embed URL
+        return res.json({ 
+          embedUrl,
+          isValid: true,
+          message: "Valid YouTube video"
+        });
+      }
+      
+      // If the original URL is invalid, try to get a fallback
+      console.log(`YouTube video ${url} is invalid or unavailable, finding fallback...`);
+      const fallbackUrl = await getFallbackYouTubeUrl(url, category);
+      
+      return res.json({
+        embedUrl: fallbackUrl,
+        isValid: false,
+        message: "Original video unavailable, using fallback",
+        isFallback: true
+      });
+    } catch (error) {
+      console.error('YouTube verification error:', error);
+      return res.status(500).json({ 
+        message: "Failed to verify YouTube video",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
   // Firebase Authentication
   app.post("/api/auth/firebase", async (req, res) => {
     try {

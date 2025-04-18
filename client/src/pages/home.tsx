@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import LoadingAnalysis from "@/components/loading-analysis";
+import { YouTubeEmbed } from "@/components/youtube-embed";
 import { 
   Sparkles, 
   Scan, 
@@ -508,13 +509,11 @@ export default function Home() {
                             How to Apply: {product.name}
                           </h4>
                           <div className="aspect-video w-full rounded-md overflow-hidden border bg-muted">
-                            <iframe
-                              src={product.videoUrl}
+                            <YouTubeEmbed 
+                              url={product.videoUrl || ''}
                               title={`Tutorial for ${product.name}`}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              className="w-full h-full"
-                            ></iframe>
+                              category={product.category.toLowerCase()}
+                            />
                           </div>
                           <p className="text-sm text-muted-foreground">
                             Perfect your {product.category.toLowerCase()} application with this step-by-step tutorial.
