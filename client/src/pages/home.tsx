@@ -193,11 +193,125 @@ export default function Home() {
     const skinTone = analysis.skinTone || 'Medium';
     const undertone = analysis.undertone || 'Neutral';
     
-    // Find relevant products from our verified database
-    // Get foundation matches based on skin tone and undertone
-    let foundationMatches: Product[] = [];
+    console.log(`Finding products for ${skinTone} skin tone with ${undertone} undertone`);
     
-    // Find foundation shade based on skin tone and undertone
+    // Use getFoundationsBySkinTone from our product database to find matches
+    const dbFoundations = getFoundationsBySkinTone(skinTone, undertone);
+    
+    // Ensure all foundations have video URLs
+    const enhancedFoundations = dbFoundations.map(foundation => {
+      if (!foundation.videoUrl) {
+        return {
+          ...foundation,
+          videoUrl: tutorialVideos.foundation
+        };
+      }
+      return foundation;
+    });
+    
+    // Select products from other categories based on skin concerns
+    const selectedProducts: Product[] = [];
+    
+    // Add 1-2 foundations
+    selectedProducts.push(...enhancedFoundations.slice(0, 2));
+    
+    // Add a concealer
+    const matchedConcealers = concealers.filter(concealer => {
+      return (concealer.shadeFamily && 
+              concealer.shadeFamily.toLowerCase().includes(skinTone.toLowerCase())) ||
+             (concealer.undertone && 
+              concealer.undertone.toLowerCase().includes(undertone.toLowerCase()));
+    });
+    
+    if (matchedConcealers.length > 0) {
+      const concealer = matchedConcealers[0];
+      if (!concealer.videoUrl) {
+        concealer.videoUrl = tutorialVideos.concealer;
+      }
+      selectedProducts.push(concealer);
+    } else if (concealers.length > 0) {
+      const concealer = concealers[0];
+      if (!concealer.videoUrl) {
+        concealer.videoUrl = tutorialVideos.concealer;
+      }
+      selectedProducts.push(concealer);
+    }
+    
+    // Add a blush based on skin tone
+    const matchedBlushes = blushes.filter(blush => {
+      // Look for blushes whose name or description matches the undertone
+      return blush.description.toLowerCase().includes(undertone.toLowerCase()) ||
+             (blush.name.toLowerCase().includes(undertone.toLowerCase()));
+    });
+    
+    if (matchedBlushes.length > 0) {
+      const blush = matchedBlushes[0];
+      if (!blush.videoUrl) {
+        blush.videoUrl = tutorialVideos.blush;
+      }
+      selectedProducts.push(blush);
+    } else if (blushes.length > 0) {
+      // If no specific match, add a popular blush
+      const blush = blushes[0];
+      if (!blush.videoUrl) {
+        blush.videoUrl = tutorialVideos.blush;
+      }
+      selectedProducts.push(blush);
+    }
+    
+    // Add an eyeshadow palette based on undertone
+    const matchedEyeshadows = eyeshadows.filter(eyeshadow => {
+      return eyeshadow.undertone && 
+             eyeshadow.undertone.toLowerCase().includes(undertone.toLowerCase());
+    });
+    
+    if (matchedEyeshadows.length > 0) {
+      const eyeshadow = matchedEyeshadows[0];
+      if (!eyeshadow.videoUrl) {
+        eyeshadow.videoUrl = tutorialVideos.eyeshadow;
+      }
+      selectedProducts.push(eyeshadow);
+    } else if (eyeshadows.length > 0) {
+      const eyeshadow = eyeshadows[0];
+      if (!eyeshadow.videoUrl) {
+        eyeshadow.videoUrl = tutorialVideos.eyeshadow;
+      }
+      selectedProducts.push(eyeshadow);
+    }
+    
+    // Add a skincare product based on concerns
+    if (analysis.concerns && analysis.concerns.length > 0) {
+      let concernMatch = null;
+      
+      // Try to find a skincare product for a specific concern
+      for (const concern of analysis.concerns) {
+        const lowerConcern = concern.toLowerCase();
+        
+        // Check for specific concerns in skincare product descriptions
+        const matchesForConcern = skincare.filter(product => {
+          return product.description.toLowerCase().includes(lowerConcern);
+        });
+        
+        if (matchesForConcern.length > 0) {
+          concernMatch = matchesForConcern[0];
+          break;
+        }
+      }
+      
+      // If we found a match, add it
+      if (concernMatch) {
+        selectedProducts.push(concernMatch);
+      } else if (skincare.length > 0) {
+        // Otherwise, add a general skincare product
+        selectedProducts.push(skincare[0]);
+      }
+    } else if (skincare.length > 0) {
+      // If no concerns, add a general skincare product
+      selectedProducts.push(skincare[0]);
+    }
+    
+    // Set the recommendations
+    setRecommendedProducts(selectedProducts);
     if (skinTone.toLowerCase().includes('fair') || skinTone.toLowerCase().includes('light')) {
       if (undertone.toLowerCase().includes('cool')) {
         foundationMatches = [
