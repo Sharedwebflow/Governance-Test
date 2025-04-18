@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { analyzeFacialFeatures } from "./lib/openai";
 import { setupAuth } from "./auth";
 import { verifyIdToken } from "./lib/firebase-admin";
+import { verifyYouTubeVideo, createEmbedUrl, getFallbackYouTubeUrl } from "./lib/youtube-utils";
 
 // Add middleware to check if user is authenticated
 function requireAuth(req: Request, res: any, next: any) {

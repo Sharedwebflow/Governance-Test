@@ -127,11 +127,19 @@ export default function Home() {
           
           // Clean up any placeholder text that may appear in the AI response
           const cleanUndertone = undertoneMatch 
-            ? undertoneMatch[1].trim().replace(/\*\*/g, '').replace(/identify if your skin has |identify if|determine if/, '')
+            ? undertoneMatch[1].trim()
+                .replace(/\*\*/g, '')
+                .replace(/identify if (the skin|your skin) (has|is) (a |an )?/i, '')
+                .replace(/determine if (the skin|your skin) (has|is) (a |an )?/i, '')
+                .replace(/^(the skin|your skin) (has|is) (a |an )?/i, '')
             : 'Neutral';
             
           const cleanSkinTone = skinToneMatch
-            ? skinToneMatch[1].trim().replace(/\*\*/g, '').replace(/identify if your skin has |identify if|determine if/, '')
+            ? skinToneMatch[1].trim()
+                .replace(/\*\*/g, '')
+                .replace(/identify if (the skin|your skin) (has|is) (a |an )?/i, '')
+                .replace(/determine if (the skin|your skin) (has|is) (a |an )?/i, '')
+                .replace(/^(the skin|your skin) (has|is) (a |an )?/i, '')
             : 'Medium';
           
           parsedData = {

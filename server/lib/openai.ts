@@ -31,7 +31,7 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<string
               type: "text",
               text: `As a professional makeup artist, analyze this image and provide personalized makeup recommendations tailored to the individual's features. Focus on foundation shade matching and complementary makeup products. Ensure the recommendations are detailed, practical, and aligned with current beauty trends.
 
-IMPORTANT: You must give a definitive, concrete response for each field - DO NOT use placeholders like "Identify if" or instructions in your response. Always make a clear determination and provide a specific answer. Format your response as follows:
+EXTREMELY IMPORTANT: You must make direct assertions rather than using phrases like "Identify if" or "Determine if". For example, instead of "Determine if the skin has a warm Undertone", say "Warm Undertone". Instead of "Identify if the skin is light Tone", say "Light Tone". DO NOT include instructional language in your responses. Format your response as follows:
 
 Foundation Recommendation:
 Undertone: [Warm/Cool/Neutral] – Determine based on visible skin characteristics.
