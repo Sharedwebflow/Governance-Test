@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +30,8 @@ import {
   ShoppingBag, 
   Palette, 
   CircleUser,
-  ChevronRight
+  ChevronRight,
+  Info as InfoIcon
 } from "lucide-react";
 
 // Define interfaces for our analysis data
@@ -86,13 +88,98 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('overview');
 
   // Updated tutorial videos with verified working YouTube embed links
+  // These are curated, high-quality tutorials specifically chosen for different skin tones and undertones
   const tutorialVideos = {
-    // Using direct iframe-friendly embed URLs with verified working videos
-    "foundation": "https://www.youtube.com/embed/ZD92D2qQW8U", // Fenty foundation tutorial by Rihanna
-    "concealer": "https://www.youtube.com/embed/n5YbJ8LzI2M", // NARS concealer tutorial
-    "blush": "https://www.youtube.com/embed/BHdpCHFL0GQ", // Rare Beauty blush tutorial
-    "eyeshadow": "https://www.youtube.com/embed/qEQq1wx_4Ro", // Urban Decay Naked palette tutorial
-    "lipstick": "https://www.youtube.com/embed/Ow0Jr-0qzZs" // Charlotte Tilbury lipstick application
+    // Foundation tutorials for different skin tones
+    "foundation": {
+      "Fair": "https://www.youtube.com/embed/j7-Oi8n01Lc",     // Foundation routine for fair skin
+      "Light": "https://www.youtube.com/embed/XZQfNBYazPI",    // Light skin foundation tutorial
+      "Medium": "https://www.youtube.com/embed/ZD92D2qQW8U",   // Fenty foundation tutorial by Rihanna
+      "Tan": "https://www.youtube.com/embed/UlTLlOFjYz0",      // Foundation routine for tan skin
+      "Deep": "https://www.youtube.com/embed/FuVxOLwizjQ",     // Deep skin tone foundation tutorial
+      "Dark": "https://www.youtube.com/embed/4xmgxhBdB0Y",     // Dark skin foundation application
+      "default": "https://www.youtube.com/embed/ZD92D2qQW8U"   // Default foundation tutorial
+    },
+    
+    // Concealer tutorials
+    "concealer": {
+      "Fair": "https://www.youtube.com/embed/VEDrLcPZM_o",     // Concealer for fair skin
+      "Medium": "https://www.youtube.com/embed/n5YbJ8LzI2M",   // NARS concealer tutorial
+      "Dark": "https://www.youtube.com/embed/fzUYjvL1NJg",     // Concealer for dark skin
+      "default": "https://www.youtube.com/embed/n5YbJ8LzI2M"   // Default concealer tutorial
+    },
+    
+    // Blush tutorials
+    "blush": {
+      "Fair": "https://www.youtube.com/embed/EkPXdQVcN8g",     // Blush for fair skin
+      "Light": "https://www.youtube.com/embed/AcFUGTZdEPk",    // Blush for light skin
+      "Medium": "https://www.youtube.com/embed/BHdpCHFL0GQ",   // Rare Beauty blush tutorial
+      "Tan": "https://www.youtube.com/embed/BHdpCHFL0GQ",      // Blush for tan skin
+      "Deep": "https://www.youtube.com/embed/wFLjQGTc_zc",     // Blush for deep skin
+      "Dark": "https://www.youtube.com/embed/wFLjQGTc_zc",     // Blush for dark skin
+      "default": "https://www.youtube.com/embed/BHdpCHFL0GQ"   // Default blush tutorial
+    },
+    
+    // Eyeshadow tutorials
+    "eyeshadow": {
+      "Warm": "https://www.youtube.com/embed/SycFuomRuQo",     // Warm toned eyeshadow
+      "Cool": "https://www.youtube.com/embed/XPkwk20RjJw",     // Cool toned eyeshadow
+      "Neutral": "https://www.youtube.com/embed/qEQq1wx_4Ro",  // Neutral eyeshadow palette tutorial
+      "default": "https://www.youtube.com/embed/qEQq1wx_4Ro"   // Default eyeshadow tutorial
+    },
+    
+    // Lipstick tutorials
+    "lipstick": {
+      "Fair": "https://www.youtube.com/embed/xP2nqq1c6Uc",     // Lipstick for fair skin
+      "Deep": "https://www.youtube.com/embed/cYxjl0n_Zc8",     // Lipstick for deep skin
+      "default": "https://www.youtube.com/embed/Ow0Jr-0qzZs"   // Charlotte Tilbury lipstick application
+    }
+  };
+  
+  // Helper function to get the appropriate tutorial based on skin tone or undertone
+  const getTutorialForSkinProfile = (category: string, skinTone: string, undertone: string) => {
+    if (!tutorialVideos[category as keyof typeof tutorialVideos]) {
+      return tutorialVideos.foundation.default;
+    }
+    
+    const categoryVideos = tutorialVideos[category as keyof typeof tutorialVideos] as Record<string, string>;
+    
+    // First try to find a video matching the exact skin tone
+    if (categoryVideos[skinTone]) {
+      return categoryVideos[skinTone];
+    } 
+    
+    // For eyeshadow, try to match by undertone
+    if (category === 'eyeshadow' && categoryVideos[undertone]) {
+      return categoryVideos[undertone];
+    }
+    
+    // Try to find a video that's close in the skin tone spectrum
+    const skinToneOrder = ['Fair', 'Light', 'Medium', 'Tan', 'Deep', 'Dark'];
+    const currentToneIndex = skinToneOrder.indexOf(skinTone);
+    
+    if (currentToneIndex !== -1) {
+      // Look for the closest skin tone that has a tutorial
+      let closestToneWithTutorial = null;
+      let minDistance = skinToneOrder.length;
+      
+      for (let i = 0; i < skinToneOrder.length; i++) {
+        if (categoryVideos[skinToneOrder[i]]) {
+          const distance = Math.abs(currentToneIndex - i);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestToneWithTutorial = skinToneOrder[i];
+          }
+        }
+      }
+      
+      if (closestToneWithTutorial) {
+        return categoryVideos[closestToneWithTutorial];
+      }
+    }
+    
+    // Default to the category default
+    return categoryVideos.default || tutorialVideos.foundation.default;
   };
 
   // Function to generate product recommendations based on skin tone and undertone
@@ -498,12 +585,11 @@ export default function Home() {
             </div>
 
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-3 md:grid-cols-5 mb-8">
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="products">Products</TabsTrigger>
                 <TabsTrigger value="shade">Shade Match</TabsTrigger>
                 <TabsTrigger value="tutorials">Tutorials</TabsTrigger>
-                <TabsTrigger value="report">Full Report</TabsTrigger>
               </TabsList>
               
               {/* Overview Tab */}
@@ -519,7 +605,19 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Skin Tone & Undertone */}
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm text-muted-foreground">Skin Tone & Undertone</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-1">
+                          Skin Tone & Undertone
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-3.5 w-3.5 inline-block text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-[220px] text-xs">
+                                <strong>Bold text</strong> shows your main categories. The dot shows your exact skin color.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </h4>
                         <div className="flex items-center gap-4">
                           <div 
                             className="w-12 h-12 rounded-full" 
@@ -534,11 +632,26 @@ export default function Home() {
                             <div className="text-sm text-muted-foreground">{parsedAnalysis.undertone} undertone</div>
                           </div>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          The circle shows your exact skin color. <strong>{parsedAnalysis.skinTone}</strong> indicates your skin tone category, and <strong>{parsedAnalysis.undertone}</strong> is your undertone category, determining which foundation shades will look most natural on you.
+                        </p>
                       </div>
                       
                       {/* Skin Type */}
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm text-muted-foreground">Skin Type & Concerns</h4>
+                        <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-1">
+                          Skin Type & Concerns
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-3.5 w-3.5 inline-block text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-[220px] text-xs">
+                                <strong>Skin type</strong> affects what foundation formula works best for you. <strong>Concerns</strong> help determine what other products might benefit you.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </h4>
                         <div>
                           <div className="font-semibold">{parsedAnalysis.skinType} skin</div>
                           <div className="text-sm text-muted-foreground">
@@ -547,6 +660,9 @@ export default function Home() {
                             ) : 'No major concerns identified'}
                           </div>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Your skin type (<strong>{parsedAnalysis.skinType}</strong>) helps determine which foundation formulations will work best for you. The identified concerns inform what complementary products might be beneficial.
+                        </p>
                       </div>
                     </div>
                     
@@ -703,29 +819,112 @@ export default function Home() {
                       <h4 className="font-semibold mb-4">Your Unique Shade Profile</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <h5 className="text-sm font-medium text-muted-foreground mb-2">Skin Tone</h5>
+                          <h5 className="text-sm font-medium text-muted-foreground mb-2">
+                            Skin Tone
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <InfoIcon className="h-3.5 w-3.5 ml-1 inline-block text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="w-[240px] text-xs">
+                                  The <strong>bold word</strong> shows your skin tone category. The triangle below shows your exact position on the spectrum.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </h5>
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 relative">
                               <div className="w-full h-8 rounded-md bg-gradient-to-r from-[#f6e3ce] via-[#e5bb95] to-[#513530]" />
+                              
+                              {/* Position marker - we'll calculate the position based on the skin tone */}
+                              {(() => {
+                                // Calculate position percentage based on skin tone
+                                const positionMap = {
+                                  'Fair': 10,  // 10% from left
+                                  'Light': 25, // 25% from left
+                                  'Medium': 50, // 50% from left (center)
+                                  'Tan': 70,   // 70% from left
+                                  'Deep': 85,  // 85% from left
+                                  'Dark': 95   // 95% from left
+                                };
+                                
+                                const position = positionMap[parsedAnalysis.skinTone as keyof typeof positionMap] || 50;
+                                
+                                return (
+                                  <div 
+                                    className="absolute" 
+                                    style={{
+                                      left: `${position}%`,
+                                      bottom: '-10px',
+                                      transform: 'translateX(-50%)'
+                                    }}
+                                  >
+                                    <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[10px] border-l-transparent border-r-transparent border-b-primary" />
+                                  </div>
+                                );
+                              })()}
                             </div>
                             <div className="flex justify-between text-sm">
                               <span>Fair</span>
-                              <span>{parsedAnalysis.skinTone}</span>
+                              <span className="font-bold text-primary">{parsedAnalysis.skinTone}</span>
                               <span>Dark</span>
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Your skin tone is identified as <strong>{parsedAnalysis.skinTone}</strong>, which helps determine the ideal foundation shade range for your complexion.
+                            </p>
                           </div>
                         </div>
                         <div>
-                          <h5 className="text-sm font-medium text-muted-foreground mb-2">Undertone</h5>
+                          <h5 className="text-sm font-medium text-muted-foreground mb-2">
+                            Undertone
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <InfoIcon className="h-3.5 w-3.5 ml-1 inline-block text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="w-[240px] text-xs">
+                                  The <strong>bold word</strong> shows your undertone category. The triangle below shows your exact position on the spectrum.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </h5>
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 relative">
                               <div className="w-full h-8 rounded-md bg-gradient-to-r from-[#e6c3c0] via-[#e0c3a8] to-[#e6be94]" />
+                              
+                              {/* Position marker for undertone */}
+                              {(() => {
+                                // Calculate position percentage based on undertone
+                                const positionMap = {
+                                  'Cool': 15,    // 15% from left
+                                  'Neutral': 50, // 50% from left (center)
+                                  'Warm': 85     // 85% from left
+                                };
+                                
+                                const position = positionMap[parsedAnalysis.undertone as keyof typeof positionMap] || 50;
+                                
+                                return (
+                                  <div 
+                                    className="absolute" 
+                                    style={{
+                                      left: `${position}%`,
+                                      bottom: '-10px',
+                                      transform: 'translateX(-50%)'
+                                    }}
+                                  >
+                                    <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[10px] border-l-transparent border-r-transparent border-b-primary" />
+                                  </div>
+                                );
+                              })()}
                             </div>
                             <div className="flex justify-between text-sm">
                               <span>Cool</span>
-                              <span>{parsedAnalysis.undertone}</span>
+                              <span className="font-bold text-primary">{parsedAnalysis.undertone}</span>
                               <span>Warm</span>
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Your undertone is identified as <strong>{parsedAnalysis.undertone}</strong>, which determines whether cool, neutral, or warm-toned foundations will look most natural on your skin.
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -873,48 +1072,7 @@ export default function Home() {
                 </Card>
               </TabsContent>
               
-              {/* Full Report Tab */}
-              <TabsContent value="report" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <h3 className="text-xl font-semibold">Complete Analysis Report</h3>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="whitespace-pre-wrap p-6 bg-secondary/20 rounded-lg font-mono text-sm max-h-[600px] overflow-y-auto">
-                      {analysisResult ? (
-                        <div className="prose prose-sm max-w-none">
-                          {analysisResult.split('\n').map((line, index) => {
-                            // Make headings bold
-                            if (line.includes(':') && !line.includes(' ')) {
-                              return <h3 key={index} className="font-bold mt-4 mb-2 text-primary">{line}</h3>;
-                            }
-                            // Make section titles stand out
-                            else if (line.includes(':') && line.split(':')[0].length < 30) {
-                              const [title, content] = line.split(':');
-                              return (
-                                <p key={index} className="my-1">
-                                  <span className="font-semibold">{title}:</span>
-                                  <span>{content}</span>
-                                </p>
-                              );
-                            }
-                            // Keep empty lines for spacing
-                            else if (line.trim() === '') {
-                              return <br key={index} />;
-                            }
-                            // Regular content
-                            else {
-                              return <p key={index} className="my-1">{line}</p>;
-                            }
-                          })}
-                        </div>
-                      ) : (
-                        "No analysis data available."
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+
             </Tabs>
           </div>
         )}
