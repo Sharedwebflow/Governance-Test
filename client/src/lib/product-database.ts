@@ -192,7 +192,7 @@ export const concealers: Product[] = [
     brand: "NARS",
     category: "Concealer",
     description: "Award-winning concealer with buildable, medium coverage for light warm skin tones",
-    imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+    imageUrl: "https://www.sephora.com/productimages/sku/s1478403-main-zoom.jpg",
     price: "$32.00",
     shadeFamily: "Light",
     undertone: "Warm",
