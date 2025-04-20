@@ -205,7 +205,7 @@ export const concealers: Product[] = [
     brand: "NARS",
     category: "Concealer",
     description: "Award-winning concealer with buildable, medium coverage for medium skin tones",
-    imageUrl: "/nars-creamy-concealer-ginger.png",
+    imageUrl: "https://www.sephora.com/productimages/sku/s1478403-main-zoom.jpg",
     price: "$32.00",
     shadeFamily: "Medium",
     undertone: "Neutral",
