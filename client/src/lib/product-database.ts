@@ -205,7 +205,7 @@ export const concealers: Product[] = [
     brand: "NARS",
     category: "Concealer",
     description: "Award-winning concealer with buildable, medium coverage for medium skin tones",
-    imageUrl: "https://www.narscosmetics.com/dw/image/v2/BBSK_PRD/on/demandware.static/-/Sites-itemmaster_NARS/default/dwbf5fc2a2/hi-res/0607845016229.jpg",
+    imageUrl: "/nars-creamy-concealer-ginger.png",
     price: "$32.00",
     shadeFamily: "Medium",
     undertone: "Neutral",
@@ -547,7 +547,7 @@ export const skincare: Product[] = [
     brand: "Tatcha",
     category: "Cleanser",
     description: "Oil-free gel cleanser that exfoliates and decongests pores",
-    imageUrl: "https://www.sephora.com/productimages/sku/s2035129-main-zoom.jpg",
+    imageUrl: "https://wwwsephora.com/productimages/sku/s2035129-main-zoom.jpg",
     price: "$39.00",
     productUrl: "https://www.sephora.com/product/the-deep-cleanse-P427536"
   },
