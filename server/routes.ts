@@ -45,36 +45,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         console.log('Starting facial analysis...');
         const analysisText = await analyzeFacialFeatures(image);
-        
-        // Check for specific error phrases that indicate no face was detected or analysis failed
-        if (analysisText.includes('NO_FACE_DETECTED') || 
-            analysisText.includes('unable to analyze') || 
-            analysisText.includes('I cannot provide') || 
-            analysisText.includes('cannot analyze') ||
-            analysisText.includes('could not analyze') ||
-            analysisText.includes('Unable to provide makeup recommendations')) {
-            
-          console.error('Analysis failed with response:', analysisText);
-          return res.status(400).json({ 
-            message: "No face detected in the image. Please upload a clear photo of your face in good lighting.",
-            error: true
-          });
-        }
-        
         console.log('Analysis completed successfully');
 
         // Parse the analysis text to extract key information
         const skinType = extractValue(analysisText, "Skin Type") || "Normal";
         const undertone = extractValue(analysisText, "Undertone") || null;
-        
-        // If we don't have an undertone, that's a sign that the AI couldn't properly analyze the image
-        if (!undertone) {
-          console.error('Missing undertone in analysis response');
-          return res.status(400).json({
-            message: "Could not analyze facial features. Please upload a clearer photo of your face.",
-            error: true
-          });
-        }
         
         // Extract foundation shades if mentioned
         const foundationLines = analysisText.split('\n').filter(line => 
