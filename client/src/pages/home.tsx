@@ -922,9 +922,9 @@ export default function Home() {
                               {(() => {
                                 // Calculate position percentage based on undertone
                                 const positionMap = {
-                                  'Cool': 15,    // 15% from left
-                                  'Neutral': 50, // 50% from left (center)
-                                  'Warm': 85     // 85% from left
+                                  'Cool': 0,      // Left
+                                  'Neutral': 50,  // Center
+                                  'Warm': 100     // Right
                                 };
                                 
                                 const position = positionMap[parsedAnalysis.undertone as keyof typeof positionMap] || 50;
