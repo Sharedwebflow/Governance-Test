@@ -1019,8 +1019,8 @@ export default function Home() {
                           Foundation Application
                         </h4>
                         <YouTubeEmbed 
-                          url={getTutorialForSkinProfile('foundation', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
-                          title={`Foundation Application for ${parsedAnalysis.skinTone} Skin`}
+                          url={getTutorialForSkinProfile('foundation', parsedAnalysis.skinTone || 'Medium', parsedAnalysis.undertone || 'Neutral')}
+                          title={`Foundation Application for ${parsedAnalysis.skinTone || 'Medium'} Skin`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
@@ -1037,8 +1037,8 @@ export default function Home() {
                           Concealer Technique
                         </h4>
                         <YouTubeEmbed 
-                          url={getTutorialForSkinProfile('concealer', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
-                          title={`Concealer Application for ${parsedAnalysis.skinTone} Skin`}
+                          url={getTutorialForSkinProfile('concealer', parsedAnalysis.skinTone || 'Medium', parsedAnalysis.undertone || 'Neutral')}
+                          title={`Concealer Application for ${parsedAnalysis.skinTone || 'Medium'} Skin`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
@@ -1054,8 +1054,8 @@ export default function Home() {
                           Blush Application
                         </h4>
                         <YouTubeEmbed 
-                          url={getTutorialForSkinProfile('blush', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
-                          title={`Blush Application for ${parsedAnalysis.skinTone} Skin`}
+                          url={getTutorialForSkinProfile('blush', parsedAnalysis.skinTone || 'Medium', parsedAnalysis.undertone || 'Neutral')}
+                          title={`Blush Application for ${parsedAnalysis.skinTone || 'Medium'} Skin`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
@@ -1071,8 +1071,8 @@ export default function Home() {
                           Eye Makeup
                         </h4>
                         <YouTubeEmbed 
-                          url={getTutorialForSkinProfile('eyeshadow', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
-                          title={`Eyeshadow Tutorial for ${parsedAnalysis.undertone} Undertones`}
+                          url={getTutorialForSkinProfile('eyeshadow', parsedAnalysis.skinTone || 'Medium', parsedAnalysis.undertone || 'Neutral')}
+                          title={`Eyeshadow Tutorial for ${parsedAnalysis.undertone || 'Neutral'} Undertones`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
