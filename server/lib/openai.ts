@@ -26,7 +26,7 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<string
       messages: [
         {
           role: "system",
-          content: "You are an expert makeup artist specializing in foundation shade matching with 20 years of experience. You must always provide a confident assessment of skin tone and undertone, even when image quality is less than perfect."
+          content: "You are an expert makeup artist specializing in foundation shade matching with 20 years of experience. If you can see a human face in the image, provide a confident assessment of skin tone and undertone. If you cannot detect a human face in the image, respond with 'NO_FACE_DETECTED' at the beginning of your response and explain that a clear facial photo is needed."
         },
         {
           role: "user",
@@ -107,20 +107,32 @@ Ensure the response remains focused on makeup recommendations only—do not anal
       throw new Error("No analysis generated");
     }
 
-    // For backwards compatibility, try to extract undertone and skin tone from text response
-    // but don't throw an error if we can't find it - we'll use defaults instead
-    const undertoneMatch = result.match(/Undertone:\s+([A-Za-z]+)/i);
-    const skinToneMatch = result.match(/Skin\s+Tone:\s+([A-Za-z]+)/i);
-    
-    if (result.includes('NO_FACE_DETECTED')) {
+    // Check for specific error cases first
+    if (result.includes('NO_FACE_DETECTED') || 
+        result.includes('unable to analyze') || 
+        result.includes('cannot analyze') ||
+        result.includes('no face detected') ||
+        result.includes('no human face')) {
       console.error('Analysis failed: No face detected in image');
       throw new Error('No face detected in the image. Please upload a clear photo showing a face.');
     }
 
+    // Check if the analysis contains proper foundation recommendations
+    if (result.toLowerCase().includes('unable to analyze') || 
+        !result.toLowerCase().includes('foundation') || 
+        result.toLowerCase().includes('i cannot provide')) {
+      console.error('Analysis failed: No proper analysis provided');
+      throw new Error('Could not analyze the image properly. Please upload a clearer photo of your face in good lighting.');
+    }
+
+    // For backwards compatibility, try to extract undertone and skin tone from text response
+    const undertoneMatch = result.match(/Undertone:\s+([A-Za-z]+)/i);
+    const skinToneMatch = result.match(/Skin\s+Tone:\s+([A-Za-z]+)/i);
+
+    // If we can't extract basic skin information, that's an error
     if (!undertoneMatch && !skinToneMatch) {
       console.error('Analysis failed with response:', result);
-      console.log("Could not extract undertone or skin tone from response, using defaults");
-      // Don't throw an error - we'll use default values on the client side
+      throw new Error('Could not determine skin tone and undertone from the image. Please upload a clearer photo of your face.');
     }
 
     // Just return the full response - we'll parse it on the client side
