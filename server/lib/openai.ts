@@ -121,11 +121,8 @@ Ensure the response remains focused on makeup recommendations only—do not anal
       console.error('Analysis failed with response:', result);
       throw new Error('Unable to analyze the image. Please ensure the photo is clear and well-lit, showing a face clearly.');
 
-Complementary Products:
-Concealer: NARS Radiant Creamy Concealer in Custard
-Blush: NARS Blush in Orgasm
-Eyeshadow: Urban Decay Naked Palette
-Lipstick: Charlotte Tilbury Matte Revolution in Pillow Talk`;
+throw new Error('Unable to analyze the image. Please ensure the photo is clear and well-lit.');
+      }
     }
 
     // Just return the full response - we'll parse it on the client side
