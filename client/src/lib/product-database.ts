@@ -67,7 +67,7 @@ export const foundations: Product[] = [
     price: "$69.00",
     shadeFamily: "Medium",
     undertone: "Neutral",
-    videoUrl: "https://www.youtube.com/embed/ZD92D2qQW8U",
+    videoUrl: "https://www.youtube.com/embed/Nqkpk18FUH4",
     productUrl: "https://www.sephora.com/product/luminous-silk-perfect-glow-flawless-oil-free-foundation-P393401"
   },
   {
@@ -209,7 +209,7 @@ export const concealers: Product[] = [
     price: "$32.00",
     shadeFamily: "Medium",
     undertone: "Neutral",
-    videoUrl: "https://www.youtube.com/embed/n5YbJ8LzI2M",
+    videoUrl: "https://www.youtube.com/embed/JfG3ziJszl0",
     productUrl: "https://www.narscosmetics.com/USA/radiant-creamy-concealer/0607845016229.html"
   },
   {
@@ -263,7 +263,7 @@ export const blushes: Product[] = [
     description: "Weightless, long-lasting liquid blush that blends beautifully for a soft flush",
     imageUrl: "https://www.sephora.com/productimages/sku/s2518959-main-zoom.jpg",
     price: "$23.00",
-    videoUrl: "https://www.youtube.com/embed/BHdpCHFL0GQ",
+    videoUrl: "https://www.youtube.com/embed/VbVaSZELdO4",
     productUrl: "https://www.sephora.com/product/rare-beauty-by-selena-gomez-soft-pinch-liquid-blush-P97989732"
   },
   {
@@ -358,7 +358,7 @@ export const eyeshadows: Product[] = [
     imageUrl: "https://www.sephora.com/productimages/sku/s2319820-main-zoom.jpg",
     price: "$54.00",
     undertone: "Neutral",
-    videoUrl: "https://www.youtube.com/embed/qEQq1wx_4Ro",
+    videoUrl: "https://www.youtube.com/embed/huO2KlLmerA",
     productUrl: "https://www.sephora.com/product/naked-reloaded-eyeshadow-palette-P441302"
   },
   {
@@ -455,6 +455,7 @@ export const skincare: Product[] = [
     description: "Rich cream that provides intense hydration for dry skin",
     imageUrl: "https://www.sephora.com/productimages/sku/s2181006-main-zoom.jpg",
     price: "$69.00",
+    videoUrl: "https://www.youtube.com/embed/Q2Wp5dwXEEo",
     productUrl: "https://www.sephora.com/product/the-dewy-skin-cream-P441101"
   },
   {
