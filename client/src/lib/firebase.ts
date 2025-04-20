@@ -18,8 +18,8 @@ import {
 
 // Firebase configuration
 const getAuthDomain = () => {
-  // Use the Replit domains if available
-  if (window.location.hostname.includes('.replit.dev') || window.location.hostname === 'beautyai.replit.app') {
+  // Use the Replit deployment domain if available
+  if (window.location.hostname.includes('.replit.dev')) {
     return window.location.hostname;
   }
   // Fallback to Firebase default domain
