@@ -1,6 +1,20 @@
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Define the session table to match what connect-pg-simple creates
+// This prevents Drizzle from trying to drop it during migrations
+import { varchar, json, timestamp as pgTimestamp } from "drizzle-orm/pg-core";
+
+export const sessions = pgTable("session", {
+  sid: varchar("sid").primaryKey(),
+  sess: json("sess").notNull(),
+  expire: pgTimestamp("expire", { precision: 6 }).notNull()
+}, (table) => {
+  return {
+    expireIdx: index("IDX_session_expire").on(table.expire)
+  };
+});
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
