@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -615,16 +615,18 @@ export default function Home() {
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-1">
                           Skin Tone & Undertone
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <InfoIcon className="h-3.5 w-3.5 inline-block text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="w-[220px] text-xs">
-                                <strong>Bold text</strong> shows your main categories. The dot shows your exact skin color.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <InfoIcon className="h-3.5 w-3.5 inline-block text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="w-[220px] text-xs">
+                                  <strong>Bold text</strong> shows your main categories. The dot shows your exact skin color.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </h4>
                         <div className="flex items-center gap-4">
                           <div 
@@ -649,16 +651,18 @@ export default function Home() {
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-1">
                           Skin Type & Concerns
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <InfoIcon className="h-3.5 w-3.5 inline-block text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="w-[220px] text-xs">
-                                <strong>Skin type</strong> affects what foundation formula works best for you. <strong>Concerns</strong> help determine what other products might benefit you.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <InfoIcon className="h-3.5 w-3.5 inline-block text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="w-[220px] text-xs">
+                                  <strong>Skin type</strong> affects what foundation formula works best for you. <strong>Concerns</strong> help determine what other products might benefit you.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </h4>
                         <div>
                           <div className="font-semibold">{parsedAnalysis.skinType} skin</div>
@@ -829,16 +833,18 @@ export default function Home() {
                         <div>
                           <h5 className="text-sm font-medium text-muted-foreground mb-2">
                             Skin Tone
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <InfoIcon className="h-3.5 w-3.5 ml-1 inline-block text-muted-foreground cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="w-[240px] text-xs">
-                                  The <strong>bold word</strong> shows your skin tone category. The triangle below shows your exact position on the spectrum.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <InfoIcon className="h-3.5 w-3.5 ml-1 inline-block text-muted-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="w-[240px] text-xs">
+                                    The <strong>bold word</strong> shows your skin tone category. The triangle below shows your exact position on the spectrum.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </h5>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 relative">
@@ -885,16 +891,18 @@ export default function Home() {
                         <div>
                           <h5 className="text-sm font-medium text-muted-foreground mb-2">
                             Undertone
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <InfoIcon className="h-3.5 w-3.5 ml-1 inline-block text-muted-foreground cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="w-[240px] text-xs">
-                                  The <strong>bold word</strong> shows your undertone category. The triangle below shows your exact position on the spectrum.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <InfoIcon className="h-3.5 w-3.5 ml-1 inline-block text-muted-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="w-[240px] text-xs">
+                                    The <strong>bold word</strong> shows your undertone category. The triangle below shows your exact position on the spectrum.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </h5>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 relative">
