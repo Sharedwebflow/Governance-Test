@@ -25,18 +25,26 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-console.log("Firebase initialization with:", {
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  apiKey: "..." + import.meta.env.VITE_FIREBASE_API_KEY.slice(-6), // Don't log the full key
-  appId: "..." + import.meta.env.VITE_FIREBASE_APP_ID.slice(-6), // Don't log the full ID
-});
+let app; // Declare app outside the try-catch block
+
+try {
+  if (!app) {
+    app = initializeApp({
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    });
+  }
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+}
 
 // Initialize Firebase - make sure we use the official authDomain from Firebase console
-const app = initializeApp({
-  ...firebaseConfig,
-  // Using the project ID for the authDomain - this needs to be authorized in Firebase console
-  authDomain: 'beautyai-dfa09.firebaseapp.com' 
-});
+//const app = initializeApp({
+//  ...firebaseConfig,
+//  // Using the project ID for the authDomain - this needs to be authorized in Firebase console
+//  authDomain: 'beautyai-dfa09.firebaseapp.com' 
+//});
 const auth = getAuth(app);
 
 // Set persistence to local to keep user logged in
@@ -70,7 +78,7 @@ export const signInWithGoogle = async () => {
   try {
     // Make sure we document the current hostname for debugging
     console.log("Current hostname during signInWithGoogle:", window.location.hostname);
-    
+
     // When running in development or on Replit domain, we need to add the domain to Firebase
     // Try to use popup first, as it's more reliable in some environments
     try {
@@ -80,7 +88,7 @@ export const signInWithGoogle = async () => {
       return result.user;
     } catch (popupError) {
       console.warn("Popup sign-in failed, falling back to redirect:", popupError);
-      
+
       // Fall back to redirect if popup fails
       if (typeof window !== 'undefined') {
         await signInWithRedirect(auth, googleProvider);
