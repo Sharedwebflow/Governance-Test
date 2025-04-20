@@ -49,6 +49,10 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const processImage = async (file: File) => {
     setIsProcessing(true);
     try {
+      if (!file || !(file instanceof File)) {
+        throw new Error("Invalid file provided");
+      }
+      
       // Create a new image element
       const img = new Image();
       const reader = new FileReader();
@@ -113,6 +117,16 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
         };
       };
 
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to read the image file. Please try again.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+      };
+
       reader.readAsDataURL(file);
     } catch (err) {
       console.error('Error processing image:', err);
@@ -175,6 +189,26 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
               className="bg-primary/80 hover:bg-primary"
             >
               Take Photo
+            </Button>
+          </div>
+        </div>
+      ) : value ? (
+        <div className="relative min-h-[300px]">
+          <img
+            src={`data:image/jpeg;base64,${value}`}
+            alt="Preview"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                startCamera();
+              }}
+              variant="secondary"
+              className="bg-white/80 hover:bg-white"
+            >
+              Take New Photo
             </Button>
           </div>
         </div>
