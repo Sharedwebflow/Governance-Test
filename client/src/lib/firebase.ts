@@ -17,9 +17,18 @@ import {
 } from "firebase/auth";
 
 // Firebase configuration
+const getAuthDomain = () => {
+  // Use the Replit deployment domain if available
+  if (window.location.hostname.includes('.replit.dev')) {
+    return window.location.hostname;
+  }
+  // Fallback to Firebase default domain
+  return `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`;
+};
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  authDomain: getAuthDomain(),
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
