@@ -112,15 +112,14 @@ Ensure the response remains focused on makeup recommendations only—do not anal
     const undertoneMatch = result.match(/Undertone:\s+([A-Za-z]+)/i);
     const skinToneMatch = result.match(/Skin\s+Tone:\s+([A-Za-z]+)/i);
     
+    if (result.includes('NO_FACE_DETECTED')) {
+      console.error('Analysis failed: No face detected in image');
+      throw new Error('No face detected in the image. Please upload a clear photo showing a face.');
+    }
+
     if (!undertoneMatch && !skinToneMatch) {
-      console.log("Could not extract undertone or skin tone from response, using defaults");
-      
-      // Instead of throwing an error, let's return a valid response with default values
-      // This ensures the UI will still work even with a sub-optimal AI response
-      return `Foundation Recommendation:
-Undertone: Neutral
-Skin Tone: Medium
-Suggested Foundation: MAC Studio Fix Fluid SPF 15 in NC30
+      console.error('Analysis failed with response:', result);
+      throw new Error('Unable to analyze the image. Please ensure the photo is clear and well-lit, showing a face clearly.');
 
 Complementary Products:
 Concealer: NARS Radiant Creamy Concealer in Custard
