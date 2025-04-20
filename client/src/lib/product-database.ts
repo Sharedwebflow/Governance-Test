@@ -23,7 +23,7 @@ export const foundations: Product[] = [
     brand: "Estée Lauder",
     category: "Foundation",
     description: "24-hour wear, flawless foundation for light skin tones with neutral undertones",
-    imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+    imageUrl: "https://www.sephora.com/productimages/sku/s2380459-main-zoom.jpg",
     price: "$49.00",
     shadeFamily: "Light",
     undertone: "Neutral",
@@ -36,7 +36,7 @@ export const foundations: Product[] = [
     brand: "Estée Lauder",
     category: "Foundation",
     description: "24-hour wear, flawless foundation for light skin tones with cool undertones",
-    imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+    imageUrl: "https://www.sephora.com/productimages/sku/s2380459-main-zoom.jpg",
     price: "$49.00",
     shadeFamily: "Light",
     undertone: "Cool",
@@ -49,7 +49,7 @@ export const foundations: Product[] = [
     brand: "Estée Lauder",
     category: "Foundation",
     description: "24-hour wear, flawless foundation for light skin tones with warm undertones",
-    imageUrl: "https://www.esteelauder.com/media/export/cms/products/640x640/el_sku_GM5F01_640x640_0.jpg",
+    imageUrl: "https://www.sephora.com/productimages/sku/s2380459-main-zoom.jpg",
     price: "$49.00",
     shadeFamily: "Light",
     undertone: "Warm",
@@ -487,7 +487,7 @@ export const skincare: Product[] = [
     price: "$31.00",
     productUrl: "https://www.paulaschoice.com/calm-redness-relief-moisturizer---normal-to-oily/9160.html"
   },
-  
+
   // Serums
   {
     id: 605,
@@ -529,7 +529,7 @@ export const skincare: Product[] = [
     price: "$165.00",
     productUrl: "https://www.bioeffect.com/us/bioeffect-egf-serum"
   },
-  
+
   // Cleansers
   {
     id: 609,
@@ -561,7 +561,7 @@ export const skincare: Product[] = [
     price: "$15.99",
     productUrl: "https://www.ulta.com/p/hydrating-facial-cleanser-pimprod2012638"
   },
-  
+
   // Treatments
   {
     id: 612,
@@ -629,14 +629,14 @@ export const allProducts: Product[] = [
 export function getFoundationsBySkinTone(skinTone: string, undertone: string): Product[] {
   const skinToneLower = skinTone.toLowerCase();
   const undertoneLower = undertone.toLowerCase();
-  
+
   return foundations.filter(foundation => {
     const matchesSkinTone = foundation.shadeFamily && 
       foundation.shadeFamily.toLowerCase().includes(skinToneLower);
-    
+
     const matchesUndertone = foundation.undertone && 
       foundation.undertone.toLowerCase().includes(undertoneLower);
-    
+
     return matchesSkinTone && matchesUndertone;
   });
 }
