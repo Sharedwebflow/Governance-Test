@@ -119,10 +119,8 @@ Ensure the response remains focused on makeup recommendations only—do not anal
 
     if (!undertoneMatch && !skinToneMatch) {
       console.error('Analysis failed with response:', result);
-      throw new Error('Unable to analyze the image. Please ensure the photo is clear and well-lit, showing a face clearly.');
-
-throw new Error('Unable to analyze the image. Please ensure the photo is clear and well-lit.');
-      }
+      console.log("Could not extract undertone or skin tone from response, using defaults");
+      // Don't throw an error - we'll use default values on the client side
     }
 
     // Just return the full response - we'll parse it on the client side

@@ -341,13 +341,15 @@ export default function Home() {
             title: "Analysis Failed",
             description: data
           });
-          setLoading(false);
           return;
         }
         
         // If we get here, we should have valid matches
         const altSkinToneMatch = !skinToneMatch && data.match(/skin\s*tone\s*(?:is|appears to be)\s*([^.\n,]+)/i);
         const altUndertoneMatch = !undertoneMatch && data.match(/(?:have|has|with)\s*(?:a|an)\s*([^.\n,]+)\s*undertone/i);
+        
+        // Process the undertone - first try the primary match, then alternative, then default
+        let undertoneFullText = 'Neutral'; // Default fallback
         if (undertoneMatch && undertoneMatch[1]) {
           undertoneFullText = undertoneMatch[1].trim();
         } else if (altUndertoneMatch && altUndertoneMatch[1]) {
