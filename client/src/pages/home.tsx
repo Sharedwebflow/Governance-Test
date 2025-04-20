@@ -137,9 +137,15 @@ export default function Home() {
   };
   
   // Helper function to get the appropriate tutorial based on skin tone or undertone
-  const getTutorialForSkinProfile = (category: string, skinTone: string, undertone: string) => {
+  // Always returns a string (a valid YouTube embed URL)
+  const getTutorialForSkinProfile = (category: string, skinTone: string, undertone: string): string => {
+    // Default fallback video if everything else fails
+    const defaultVideo = "https://www.youtube.com/embed/ZD92D2qQW8U";
+    
+    // Check if the category exists in our tutorials object
     if (!tutorialVideos[category as keyof typeof tutorialVideos]) {
-      return tutorialVideos.foundation.default;
+      // If category doesn't exist, return the default foundation video
+      return (tutorialVideos.foundation as Record<string, string>).default || defaultVideo;
     }
     
     const categoryVideos = tutorialVideos[category as keyof typeof tutorialVideos] as Record<string, string>;
@@ -160,7 +166,7 @@ export default function Home() {
     
     if (currentToneIndex !== -1) {
       // Look for the closest skin tone that has a tutorial
-      let closestToneWithTutorial = null;
+      let closestToneWithTutorial: string | null = null;
       let minDistance = skinToneOrder.length;
       
       for (let i = 0; i < skinToneOrder.length; i++) {
@@ -173,13 +179,15 @@ export default function Home() {
         }
       }
       
-      if (closestToneWithTutorial) {
+      if (closestToneWithTutorial && categoryVideos[closestToneWithTutorial]) {
         return categoryVideos[closestToneWithTutorial];
       }
     }
     
     // Default to the category default
-    return categoryVideos.default || tutorialVideos.foundation.default;
+    return categoryVideos.default || 
+           (tutorialVideos.foundation as Record<string, string>).default || 
+           defaultVideo;
   };
 
   // Function to generate product recommendations based on skin tone and undertone
@@ -198,7 +206,7 @@ export default function Home() {
       if (!product.videoUrl) {
         return {
           ...product,
-          videoUrl: tutorialVideos[category] || tutorialVideos.foundation
+          videoUrl: getTutorialForSkinProfile(category, skinTone, undertone)
         };
       }
       return product;
@@ -279,14 +287,14 @@ export default function Home() {
         // Add the skincare video URL (using foundation as fallback if skincare not available)
         const skincareWithVideo = {
           ...concernMatch,
-          videoUrl: tutorialVideos.foundation
+          videoUrl: getTutorialForSkinProfile('foundation', skinTone, undertone)
         };
         recommendations.push(skincareWithVideo);
       } else if (skincare.length > 0) {
         // Otherwise, add a general skincare product
         const skincareWithVideo = {
           ...skincare[0],
-          videoUrl: tutorialVideos.foundation
+          videoUrl: getTutorialForSkinProfile('foundation', skinTone, undertone)
         };
         recommendations.push(skincareWithVideo);
       }
@@ -294,7 +302,7 @@ export default function Home() {
       // If no concerns, add a general skincare product
       const skincareWithVideo = {
         ...skincare[0],
-        videoUrl: tutorialVideos.foundation
+        videoUrl: getTutorialForSkinProfile('foundation', skinTone, undertone)
       };
       recommendations.push(skincareWithVideo);
     }
@@ -1011,13 +1019,14 @@ export default function Home() {
                           Foundation Application
                         </h4>
                         <YouTubeEmbed 
-                          url={tutorialVideos.foundation}
-                          title="Foundation Application Tutorial"
+                          url={getTutorialForSkinProfile('foundation', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
+                          title={`Foundation Application for ${parsedAnalysis.skinTone} Skin`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
-                          Learn how to apply foundation for a flawless finish that matches your 
-                          {parsedAnalysis.skinTone} skin tone and {parsedAnalysis.undertone} undertone.
+                          Learn how to apply foundation for a flawless finish that's perfect for your{' '}
+                          <strong>{parsedAnalysis.skinTone}</strong> skin tone with <strong>{parsedAnalysis.undertone}</strong> undertones.
+                          This tutorial is specifically selected for your skin profile.
                         </p>
                       </div>
                       
@@ -1028,43 +1037,47 @@ export default function Home() {
                           Concealer Technique
                         </h4>
                         <YouTubeEmbed 
-                          url={tutorialVideos.concealer}
-                          title="Concealer Application Tutorial"
+                          url={getTutorialForSkinProfile('concealer', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
+                          title={`Concealer Application for ${parsedAnalysis.skinTone} Skin`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
-                          Master the art of concealing with techniques perfect for your skin type.
+                          Master concealer techniques specifically chosen for your <strong>{parsedAnalysis.skinTone}</strong> skin tone
+                          to perfectly camouflage dark circles and imperfections.
                         </p>
                       </div>
                       
-                      {/* Other Tutorials */}
+                      {/* Blush Tutorial */}
                       <div className="space-y-3">
                         <h4 className="font-medium flex items-center gap-2">
                           <Palette className="h-5 w-5" />
                           Blush Application
                         </h4>
                         <YouTubeEmbed 
-                          url={tutorialVideos.blush}
-                          title="Blush Application Tutorial"
+                          url={getTutorialForSkinProfile('blush', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
+                          title={`Blush Application for ${parsedAnalysis.skinTone} Skin`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
-                          Learn where to apply blush for your face shape and skin tone.
+                          Learn where to apply blush for your face shape and how to select shades that 
+                          flatter your <strong>{parsedAnalysis.skinTone}</strong> skin tone for a natural, healthy glow.
                         </p>
                       </div>
                       
+                      {/* Eyeshadow Tutorial */}
                       <div className="space-y-3">
                         <h4 className="font-medium flex items-center gap-2">
                           <Palette className="h-5 w-5" />
                           Eye Makeup
                         </h4>
                         <YouTubeEmbed 
-                          url={tutorialVideos.eyeshadow}
-                          title="Eyeshadow Application Tutorial"
+                          url={getTutorialForSkinProfile('eyeshadow', parsedAnalysis.skinTone, parsedAnalysis.undertone)}
+                          title={`Eyeshadow Tutorial for ${parsedAnalysis.undertone} Undertones`}
                           aspectRatio="video"
                         />
                         <p className="text-sm text-muted-foreground">
-                          Eyeshadow techniques that complement your skin undertones.
+                          Discover eyeshadow techniques and color palettes that complement your <strong>{parsedAnalysis.undertone}</strong> undertones
+                          to make your eye color pop and enhance your natural beauty.
                         </p>
                       </div>
                     </div>
