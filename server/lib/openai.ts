@@ -26,18 +26,26 @@ export async function analyzeFacialFeatures(base64Image: string): Promise<string
       messages: [
         {
           role: "system",
-          content: "You are an expert makeup artist specializing in foundation shade matching with 20 years of experience. If you can see a human face in the image, provide a confident assessment of skin tone and undertone. If you cannot detect a human face in the image, respond with 'NO_FACE_DETECTED' at the beginning of your response and explain that a clear facial photo is needed."
+          content: "You are an expert makeup artist specializing in foundation shade matching with 20 years of experience. Your first task is to determine if there is a clear human face visible in the image. Only proceed with makeup analysis if a face is clearly visible."
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analyze this selfie to determine skin tone, undertone, and provide foundation matching recommendations.
+              text: `First, check if there is a clear human face in this image.
+
+Step 1: Face Detection Check
+Is there a clear human face in this image?
+- If NO, respond ONLY with: "NO_FACE_DETECTED: Unable to provide makeup recommendations because no clear human face is visible in the image. Please upload a well-lit photo clearly showing your face."
+- If YES, proceed to Step 2.
+
+Step 2: Makeup Analysis
+If a face is clearly visible, analyze the skin tone, undertone, and provide foundation matching recommendations following these guidelines:
 
 EXTREMELY IMPORTANT:
-1. For UNDERTONE, you must choose EXACTLY ONE option: Warm, Cool, or Neutral. 
-2. For SKIN TONE, you must choose EXACTLY ONE option: Fair, Light, Medium, Tan, Deep, or Dark.
+1. For UNDERTONE, choose EXACTLY ONE option: Warm, Cool, or Neutral. 
+2. For SKIN TONE, choose EXACTLY ONE option: Fair, Light, Medium, Tan, Deep, or Dark.
 3. Never use phrases like "I think" or "appears to be" - always make direct, confident assertions.
 4. Be extremely concise and direct in your assessment.
 

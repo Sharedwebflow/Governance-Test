@@ -341,15 +341,27 @@ export default function Home() {
         const skinToneMatch = data.match(/(?:skin\s*tone|complexion):\s*([^.\n,]+)/i);
         const undertoneMatch = data.match(/(?:undertone|undertones):\s*([^.\n,]+)/i);
         
-        // If there's an error message, display it and stop processing
-        if (data.includes('No face detected') || 
-            data.includes('Unable to analyze') || 
-            data.includes('NO_FACE_DETECTED')) {
-          console.error('Analysis error:', data);
+        // Check for explicit NO_FACE_DETECTED marker from the AI
+        if (data.includes('NO_FACE_DETECTED')) {
+          console.error('No face detected in image:', data);
           toast({
             variant: "destructive",
             title: "No Face Detected",
             description: "Please upload a clear photo showing your face in good lighting."
+          });
+          return;
+        }
+        
+        // Check for other analysis problems
+        if (data.includes('No face detected') || 
+            data.includes('Unable to analyze') || 
+            data.includes('cannot analyze') || 
+            data.includes('I cannot provide')) {
+          console.error('Analysis error:', data);
+          toast({
+            variant: "destructive",
+            title: "Analysis Failed",
+            description: "Could not properly analyze the image. Please upload a clearer photo of your face."
           });
           return;
         }
