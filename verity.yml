@@ -1,0 +1,19 @@
+# verity.yml
+dataset: data/dataset.csv
+model: models/model.pkl
+label: approved  # Your target column name
+
+sensitive:
+  - gender
+  - age_group
+
+thresholds:
+  demographic_parity_diff: 0.10
+  equal_opportunity_diff: 0.10
+  disparate_impact_ratio_min: 0.80
+
+dataset_metadata:
+  description: "Your dataset description"
+  population: "Target population"
+  jurisdiction: "United States"
+  sample_size: 1000
