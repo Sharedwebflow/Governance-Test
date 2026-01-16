@@ -1,19 +1,22 @@
-# verity.yml
-dataset: data/dataset.csv
-model: models/model.pkl
-label: approved  # Your target column name
-
+model: api://openai
+label: target
 sensitive:
   - gender
-  - age_group
-
+  - race
+  - age
 thresholds:
-  demographic_parity_diff: 0.10
-  equal_opportunity_diff: 0.10
-  disparate_impact_ratio_min: 0.80
-
+  demographic_parity_diff: 0.03
+  equal_opportunity_diff: 0.03
+  disparate_impact_ratio_min: 0.85
+  false_match_rate_diff_max: 0.01
+  false_non_match_rate_diff_max: 0.01
 dataset_metadata:
-  description: "Your dataset description"
-  population: "Target population"
-  jurisdiction: "United States"
+  description: Dataset for test
+  population: Target population
+  jurisdiction: United States
   sample_size: 1000
+  decision_type: classification
+dataset: api_request_response_samples.json
+model_type: api
+api_provider: openai
+policy_profile: biometrics_facial
