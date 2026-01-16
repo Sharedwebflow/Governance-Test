@@ -2,8 +2,8 @@ model: api://openai
 label: target
 sensitive:
   - gender
-  - race
   - age
+  - race
 thresholds:
   demographic_parity_diff: 0.03
   equal_opportunity_diff: 0.03
