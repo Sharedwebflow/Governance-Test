@@ -3,7 +3,6 @@ label: target
 sensitive:
   - gender
   - age
-  - race
 thresholds:
   demographic_parity_diff: 0.03
   equal_opportunity_diff: 0.03
@@ -11,11 +10,10 @@ thresholds:
   false_match_rate_diff_max: 0.01
   false_non_match_rate_diff_max: 0.01
 dataset_metadata:
-  description: Dataset for test
+  description: Dataset for d633a879-f6c3-4529-95d9-e19d7ccbb1b9
   population: Target population
   jurisdiction: United States
   sample_size: 1000
-  decision_type: classification
 dataset: api_request_response_samples.json
 model_type: api
 api_provider: openai
