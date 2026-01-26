@@ -1,14 +1,8 @@
 mode: api_model
-audit_intent: performance_only
-task_type: regression
 sector: general
-decision_type: pricing
+decision_type: classification
 domain_profile: general
 jurisdiction: United States
-dataset_metadata:
-  description: Dataset for 463c2e1d-dc61-4af9-b6a9-5b745d2634cf
-  population: Target population
-  sample_size: 1000
 metrics:
   policy_violation_rate:
     compute: policy_violation_rate
@@ -83,8 +77,21 @@ metrics:
 api_provider: openai
 api_model: gpt-4
 api_key_env: OPENAI_API_KEY
-test_suite_source: tests/cases.yaml
-protected_demographics:
-  - gender
-  - age_group
-  - race_ethnicity
+interaction_type: chat
+output_type: free_text
+audit_profile: standard
+decision_impact: advisory
+test_suite:
+  source: verity://baseline/general
+  generate: true
+  generation_profile: standard
+fairness:
+  demographic_parity:
+    enabled: true
+    demographics:
+      - gender_presentation
+      - age_group
+      - race_ethnicity
+      - nationality
+      - language
+    variant_generation: moderate
